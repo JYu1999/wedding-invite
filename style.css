@@ -32,7 +32,7 @@ body {
   /* 引入照片背景 */
   background-image: url('photo1.jpg');
   background-size: cover;
-  background-position: center center;
+  background-position: center 43%;
   background-repeat: no-repeat;
   padding: 40px 20px;
   overflow: hidden;
@@ -66,11 +66,43 @@ body {
 
 .hero .names {
   font-family: 'Cormorant Garamond', 'Noto Serif TC', serif;
-  font-size: 2.8rem;
+  font-size: 2.2rem; /* 稍微微調字級，加入稱謂後比例更和諧 */
   font-weight: 500;
-  margin-bottom: 10px;
   letter-spacing: 0.12em;
   color: #222222;
+  margin-bottom: 10px;
+  
+  /* 讓兩人橫向並排置中 */
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 1.5rem; /* 兩人之間的間隔 */
+  flex-wrap: wrap; /* 手機螢幕太窄時自動友善換行 */
+}
+
+/* 每一位主角（稱謂 + 名字）不被拆開 */
+.hero .names .person {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+/* 「新郎」、「新娘」字樣稍微縮小、字重變細 */
+.hero .names .role {
+  font-size: 1.1rem; /* 約為名字大小的一半左右 */
+  font-weight: 300;
+  opacity: 0.8;
+  letter-spacing: 0.05em;
+}
+
+/* 手機版直式窄螢幕自動優雅分兩行 */
+@media (max-width: 480px) {
+  .hero .names {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
 }
 
 .hero .date-hero {
