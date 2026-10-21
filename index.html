@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Wedding Day | 電子喜帖</title>
+    <!-- Google Fonts 質感襯線字體 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Serif+TC:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- 主視覺封面 -->
+    <header class="hero">
+        <div class="hero-content">
+            <p class="subtitle">WE ARE GETTING MARRIED</p>
+            <h1 class="names">Groom & Bride</h1>
+            <p class="date-hero">2026 . 12 . 20</p>
+        </div>
+    </header>
+
+    <!-- 倒數計時區 -->
+    <section class="section countdown-section">
+        <div class="countdown-container">
+            <div class="countdown-box"><span id="days">00</span><span class="label">Days</span></div>
+            <div class="countdown-box"><span id="hours">00</span><span class="label">Hours</span></div>
+            <div class="countdown-box"><span id="mins">00</span><span class="label">Mins</span></div>
+            <div class="countdown-box"><span id="secs">00</span><span class="label">Secs</span></div>
+        </div>
+    </section>
+
+    <!-- 邀請信與婚禮細節 -->
+    <section class="section details-section">
+        <div class="container">
+            <p class="letter-intro">
+                誠摯邀請您參與我們的婚禮<br>
+                與我們一同分享這份喜悅與溫暖時光
+            </p>
+
+            <div class="card-grid">
+                <div class="detail-card">
+                    <h3>宴席時間</h3>
+                    <p>2026 年 12 月 20 日 (週日)</p>
+                    <p class="highlight">11:30 迎賓接待 / 12:00 準時入席</p>
+                </div>
+
+                <div class="detail-card">
+                    <h3>宴席地點</h3>
+                    <p>台南宴會會館 / 廳別名稱</p>
+                    <p>台南市詳細地址</p>
+                    <a class="text-link" href="https://maps.google.com" target="_blank" rel="noopener">開啟 Google 地圖導航
+                        &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 出席回函 -->
+    <section class="section rsvp-section">
+        <div class="container">
+            <h2>出席回函</h2>
+            <p>為了為您準備合適的席位，請於指定日期前協助填寫回函</p>
+            <!-- 替換為你的 Google 表單連結 -->
+            <a href="https://forms.google.com" target="_blank" rel="noopener" class="btn-primary">填寫出席問卷</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Groom & Bride. Designed with Love.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

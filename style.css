@@ -1,0 +1,164 @@
+:root {
+    --bg-color: #faf9f6;
+    --card-bg: #ffffff;
+    --text-main: #333333;
+    --text-muted: #737373;
+    --accent-silver: #a0aab2;
+    --accent-hover: #7b8893;
+    --border-color: #e5e5e5;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Noto Serif TC', serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    line-height: 1.8;
+    letter-spacing: 0.05em;
+    text-align: center;
+}
+
+.hero {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #ffffff 0%, var(--bg-color) 100%);
+    padding: 40px 20px;
+}
+
+.hero .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.25em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.hero .names {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.8rem;
+    font-weight: 400;
+    margin-bottom: 10px;
+    letter-spacing: 0.1em;
+}
+
+.hero .date-hero {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    color: var(--accent-silver);
+    letter-spacing: 0.15em;
+}
+
+.section {
+    padding: 60px 20px;
+}
+
+.container {
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+/* 倒數計時 */
+.countdown-section {
+    background-color: #ffffff;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.countdown-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.countdown-box {
+    display: flex;
+    flex-direction: column;
+    min-width: 65px;
+}
+
+.countdown-box span:first-child {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.countdown-box .label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+/* 細節卡片 */
+.letter-intro {
+    margin-bottom: 40px;
+    font-size: 1.05rem;
+    line-height: 2.2;
+}
+
+.card-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.detail-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 30px 20px;
+    border-radius: 4px;
+}
+
+.detail-card h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.detail-card .highlight {
+    color: var(--accent-hover);
+    font-weight: 500;
+}
+
+.text-link {
+    display: inline-block;
+    margin-top: 12px;
+    color: var(--accent-hover);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.text-link:hover {
+    text-decoration: underline;
+}
+
+/* 按鈕樣式 */
+.btn-primary {
+    display: inline-block;
+    margin-top: 24px;
+    padding: 12px 36px;
+    background-color: var(--accent-silver);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    letter-spacing: 0.1em;
+    transition: background-color 0.25s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-hover);
+}
+
+footer {
+    padding: 40px 20px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+}
