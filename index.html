@@ -4,13 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>我們結婚了 | 詹傑宇 & 潘昱綺</title>
-  
+
   <!-- 字型載入 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cormorant+Garamond:wght@400;500;600&family=Noto+Serif+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="style.css">
+
+  <!-- 樣式：依區塊拆分 -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/intro.css">
+  <link rel="stylesheet" href="css/hero.css">
+  <link rel="stylesheet" href="css/details.css">
+  <link rel="stylesheet" href="css/gallery.css">
+  <link rel="stylesheet" href="css/music-player.css">
+
+  <script type="module" src="js/main.js"></script>
 </head>
 <body>
 
@@ -18,13 +26,13 @@
   <div id="intro-overlay">
     <div class="envelope-wrapper">
       <p class="envelope-hint">點擊拆開邀請函<br><span>OPEN INVITATION</span></p>
-      
+
       <div class="envelope-container" id="envelopeBox">
         <!-- 信封底座 -->
         <div class="envelope-back"></div>
 
         <!-- 內部信件卡片 -->
-        <div class="envelope-letter" id="envelopeLetter">
+        <div class="envelope-letter">
           <div class="letter-inner">
             <div class="letter-en-title">Wedding Invitation</div>
             <div class="letter-names">詹傑宇 & 潘昱綺</div>
@@ -49,16 +57,20 @@
   <header class="hero">
     <!-- 主視覺照片背景 -->
     <div class="hero-image-container">
-      <img src="photo1.jpg" alt="詹傑宇與潘昱綺" class="hero-bg-img">
-    </div>
+      <img src="assets/images/hero.jpg" alt="詹傑宇與潘昱綺" class="hero-bg-img">
 
-    <!-- 柔和羽化漸層 -->
-    <div class="hero-gradient-fade"></div>
+      <!-- 柔和羽化漸層 -->
+      <div class="hero-gradient-fade"></div>
+
+      <!-- 雪景：只在照片範圍內飄落並在底部堆積 -->
+      <canvas class="snow-canvas" id="snowCanvas" aria-hidden="true"></canvas>
+
+      <!-- 英文小標固定壓在照片下緣 -->
+      <p class="subtitle">WE ARE GETTING MARRIED</p>
+    </div>
 
     <!-- 內文文字區 -->
     <div class="hero-content">
-      <p class="subtitle">WE ARE GETTING MARRIED</p>
-      
       <!-- 主角姓名 -->
       <div class="names">
         <div class="person">
@@ -140,7 +152,7 @@
           <p class="highlight">2026 年 12 月 20 日 星期日</p>
           <p>17:30 入席 ｜ 18:00 準時開席</p>
           <div class="calendar-btn-group">
-            <a href="#" class="btn-cal" id="googleCalBtn" target="_blank">加入 Google 行事曆</a>
+            <a href="#" class="btn-cal" target="_blank">加入 Google 行事曆</a>
           </div>
         </div>
 
@@ -151,288 +163,44 @@
           <a href="https://maps.google.com" target="_blank" class="text-link">開啟 Google 地圖導航 ➔</a>
         </div>
       </div>
-
-      <a href="#rsvp" class="btn-primary">填寫出席回函</a>
     </div>
   </section>
 
-  <!-- ==================== 5. 相片藝廊 (手機 2 欄並排) ==================== -->
+  <!-- ==================== 5. 相片藝廊：照片清單在 js/config.js ==================== -->
   <section class="section reveal">
     <div class="container">
-      <p class="subtitle" style="font-family: var(--font-en-serif); letter-spacing: 4px; color: #8c8075;">GALLERY</p>
-      <h2 style="font-size: 22px; color: #423b35; margin-bottom: 24px; font-weight: 500;">美好剪影</h2>
-      
-      <div class="gallery-grid">
-        <div class="gallery-item">
-          <img src="./gallery1.jpg" alt="婚紗照 1" class="gallery-img">
-        </div>
-        <div class="gallery-item">
-          <img src="./gallery2.jpg" alt="婚紗照 2" class="gallery-img">
-        </div>
-        <div class="gallery-item">
-          <img src="./gallery3.jpg" alt="婚紗照 3" class="gallery-img">
-        </div>
-        <div class="gallery-item">
-          <img src="./gallery4.jpg" alt="婚紗照 4" class="gallery-img">
-        </div>
-      </div>
+      <p class="section-eyebrow">GALLERY</p>
+      <h2 class="section-title">美好剪影</h2>
+      <div class="gallery-grid" id="galleryGrid"></div>
     </div>
   </section>
 
   <!-- 相片燈箱放大容器 -->
-  <div id="lightbox">
-    <img id="lightbox-img" src="" alt="放大照片">
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-frame">
+      <img id="lightboxImg" src="" alt="放大照片">
+    </div>
   </div>
 
   <!-- ==================== 6. 頁尾 ==================== -->
   <footer>
-    <p>JAY & YUCHI © 2026</p>
-    <p style="margin-top: 4px; opacity: 0.7;">WITH LOVE AND GRATITUDE</p>
+    <p>JYU & CHI © 2026</p>
+    <p class="footer-note">WITH LOVE AND GRATITUDE</p>
   </footer>
 
-  <!-- ==================== 7. 自備音樂與底部控制條 ==================== -->
-  <!-- 音樂標籤：替換成您放入 VSCode 的音樂檔路徑 -->
-  <audio id="bgm" src="bgm.mp3" preload="auto" loop>
-    <source src="./bgm.mp3" type="audio/mpeg">
-    您的瀏覽器不支援音樂播放。
-  </audio>
+  <!-- ==================== 7. 背景音樂與懸浮播放器 ==================== -->
+  <audio id="bgm" src="assets/audio/bgm.mp3" preload="auto" loop></audio>
 
-  <!-- 懸浮音樂播放條 -->
   <div class="music-player-bar" id="musicPlayer">
-    <div class="player-disc" id="playerDisc">♫</div>
-    <div class="player-info">
-      <p class="song-title">超越時空的思念</p>
+    <div class="player-record" aria-hidden="true">
+      <div class="player-disc"></div>
+      <div class="player-arm"></div>
     </div>
+    <p class="song-title">超越時空的思念</p>
     <button class="player-btn" id="playBtn" type="button" aria-label="播放或暫停音樂">
       <span id="playIcon">▶</span>
     </button>
   </div>
 
-  <!-- 飄落花瓣畫布 -->
-  <canvas id="petal-canvas"></canvas>
-
-<!-- ==================== JavaScript 功能腳本 ==================== -->
-<script>
-  // 1. 初始化與確保音訊來源為 bgm.mp3
-  const introOverlay = document.getElementById('intro-overlay');
-  const envelopeBox = document.getElementById('envelopeBox');
-  const envelopeLetter = document.getElementById('envelopeLetter');
-  const playBtn = document.getElementById('playBtn');
-  const playIcon = document.getElementById('playIcon');
-  const playerDisc = document.getElementById('playerDisc');
-
-  let bgMusic = document.getElementById('bg-music');
-  if (!bgMusic) {
-    bgMusic = document.createElement('audio');
-    bgMusic.id = 'bg-music';
-    bgMusic.loop = true;
-    bgMusic.preload = 'auto';
-    document.body.appendChild(bgMusic);
-  }
-  // 指定音樂檔案
-  bgMusic.src = 'bgm.mp3';
-
-  // 2. 信封點擊拆封開場與自動播放背景音樂
-  if (introOverlay) {
-    introOverlay.addEventListener('click', () => {
-      if (envelopeBox) envelopeBox.classList.add('open');
-
-      // 安全嘗試播放音樂（防呆：即使被瀏覽器擋下或檔案載入慢，也絕不中斷頁面淡出）
-      if (bgMusic) {
-        try {
-          const playPromise = bgMusic.play();
-          if (playPromise !== undefined) {
-            playPromise.then(() => {
-              if (playerDisc) playerDisc.classList.add('playing');
-              if (playIcon) playIcon.textContent = '❚❚';
-            }).catch(err => {
-              console.warn('瀏覽器限制自動播放或正在載入，可手動點擊音樂按鈕播放', err);
-            });
-          }
-        } catch (e) {
-          console.error('音訊播放異常：', e);
-        }
-      }
-
-      // 信紙淡出
-      setTimeout(() => {
-        if (envelopeLetter) envelopeLetter.classList.add('fade-away');
-      }, 1200);
-
-      // 開場遮罩淡出（保證一定執行進入首頁）
-      setTimeout(() => {
-        introOverlay.classList.add('fade-out');
-        introOverlay.style.pointerEvents = 'none';
-      }, 1900);
-    }, { once: true }); // 確保只觸發一次，避免重複點擊衝突
-  }
-
-  // 3. 音樂條手動播放 / 暫停按鈕
-  if (playBtn && bgMusic) {
-    playBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (bgMusic.paused) {
-        bgMusic.play().then(() => {
-          if (playerDisc) playerDisc.classList.add('playing');
-          if (playIcon) playIcon.textContent = '❚❚';
-        }).catch(err => console.error('手動播放失敗：', err));
-      } else {
-        bgMusic.pause();
-        if (playerDisc) playerDisc.classList.remove('playing');
-        if (playIcon) playIcon.textContent = '▶';
-      }
-    });
-  }
-
-  // 4. 婚禮倒數計時器
-  function updateCountdown() {
-    const weddingDate = new Date('2026-12-20T12:00:00').getTime();
-    const now = new Date().getTime();
-    const diff = weddingDate - now;
-
-    if (diff > 0) {
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-      const daysEl = document.getElementById('days');
-      const hoursEl = document.getElementById('hours');
-      const minutesEl = document.getElementById('minutes');
-      const secondsEl = document.getElementById('seconds');
-
-      if (daysEl) daysEl.textContent = String(days).padStart(2, '0');
-      if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
-      if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
-      if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
-    }
-  }
-  setInterval(updateCountdown, 1000);
-  updateCountdown();
-
-  // 5. 相片燈箱點擊放大
-  const lightbox = document.getElementById('lightbox');
-  const lightboxImg = document.getElementById('lightbox-img');
-  const galleryImgs = document.querySelectorAll('.gallery-img');
-
-  if (lightbox && lightboxImg) {
-    galleryImgs.forEach(img => {
-      img.addEventListener('click', () => {
-        lightboxImg.src = img.src;
-        lightbox.style.display = 'flex';
-      });
-    });
-
-    lightbox.addEventListener('click', () => {
-      lightbox.style.display = 'none';
-    });
-  }
-
-  // 6. 滾動顯現動畫 (Scroll Reveal)
-  const revealElements = document.querySelectorAll('.reveal');
-  const revealOnScroll = () => {
-    const windowHeight = window.innerHeight;
-    revealElements.forEach(el => {
-      const elementTop = el.getBoundingClientRect().top;
-      if (elementTop < windowHeight - 60) {
-        el.classList.add('visible');
-      }
-    });
-  };
-  window.addEventListener('scroll', revealOnScroll);
-  revealOnScroll();
-
-  // 7. 滑動監聽：提前在滑離首頁時顯現音樂播放器
-  const musicPlayer = document.getElementById('musicPlayer');
-  const heroSection = document.querySelector('.hero');
-
-  const handlePlayerVisibility = () => {
-    if (!heroSection || !musicPlayer) return;
-    const heroBottom = heroSection.getBoundingClientRect().bottom;
-
-    // 當首頁底部接近或滑出視窗頂部 350px 內時提前浮現
-    if (heroBottom < 350) {
-      musicPlayer.classList.add('show');
-      }
-  };
-
-  window.addEventListener('scroll', handlePlayerVisibility);
-  handlePlayerVisibility();
-
-  // ==================== 8. 冬季白雪紛飛飄落特效 ====================
-  const canvas = document.getElementById('petal-canvas');
-  if (canvas) {
-    const ctx = canvas.getContext('2d');
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    // 視窗縮放時自動適應大小
-    window.addEventListener('resize', () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    });
-
-    // 依螢幕寬度決定雪花密度（手機版適度減少，避免耗電）
-    const snowflakeCount = width < 768 ? 35 : 65;
-    const snowflakes = [];
-
-    class Snowflake {
-      constructor() {
-        this.reset(true);
-      }
-
-      reset(initial = false) {
-        this.x = Math.random() * width;
-        // 初始時均勻分布在畫面上，後續重置則從頂部外生成
-        this.y = initial ? Math.random() * height : -15;
-        this.radius = Math.random() * 2.8 + 1.2; // 雪花半徑 (1.2px ~ 4px)
-        this.speedY = Math.random() * 0.9 + 0.6; // 垂直掉落速度
-        this.speedX = Math.random() * 0.4 - 0.2; // 基礎微風橫移
-        this.opacity = Math.random() * 0.5 + 0.35; // 柔和透明度
-        this.angle = Math.random() * Math.PI * 2;
-        this.angleSpeed = Math.random() * 0.02 + 0.01; // 左右擺動頻率
-        this.swayRange = Math.random() * 0.8 + 0.4; // 左右搖曳幅度
-      }
-
-      update() {
-        this.angle += this.angleSpeed;
-        this.x += Math.sin(this.angle) * this.swayRange + this.speedX;
-        this.y += this.speedY;
-
-        // 當雪花超出視窗底部或左右兩側時，從上方重置
-        if (this.y > height + 10 || this.x < -10 || this.x > width + 10) {
-          this.reset(false);
-        }
-      }
-
-      draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-        ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
-        ctx.shadowBlur = 4; // 雪花邊緣微發光
-        ctx.fill();
-        ctx.closePath();
-      }
-    }
-
-    // 初始化雪花
-    for (let i = 0; i < snowflakeCount; i++) {
-      snowflakes.push(new Snowflake());
-    }
-
-    // 動畫渲染循環
-    function renderSnow() {
-      ctx.clearRect(0, 0, width, height);
-      snowflakes.forEach((flake) => {
-        flake.update();
-        flake.draw();
-      });
-      requestAnimationFrame(renderSnow);
-    }
-
-    renderSnow();
-  }
-</script>
 </body>
 </html>

@@ -1,0 +1,79 @@
+/* ==================== 全站基礎：色彩字型變數、重置、共用區塊 ==================== */
+:root {
+  --bg-color: #faf9f6;
+  --hero-bg: #faf8f5;
+  --card-bg: #ffffff;
+  --text-main: #333333;
+  --text-muted: #737373;
+  --accent-silver: #a0aab2;
+  --accent-hover: #7b8893;
+  --border-color: #e5e5e5;
+  --rose-accent: #deb6ab;
+  --wine-accent: #b35d50;
+  --font-serif: 'Noto Serif TC', serif;
+  --font-en-serif: 'Cormorant Garamond', serif;
+  --font-script: 'Alex Brush', cursive;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-serif);
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  line-height: 1.8;
+  letter-spacing: 0.05em;
+  text-align: center;
+  overflow-x: hidden;
+}
+
+.section {
+  padding: 60px 20px;
+}
+
+.container {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* 區塊標題：英文小字 + 中文標題 */
+.section-eyebrow {
+  font-family: var(--font-en-serif);
+  letter-spacing: 4px;
+  color: #8c8075;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 500;
+  color: #423b35;
+  margin-bottom: 24px;
+}
+
+/* 滾動顯現動畫 */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+footer {
+  padding: 40px 20px 80px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.footer-note {
+  margin-top: 4px;
+  opacity: 0.7;
+}

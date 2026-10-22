@@ -1,0 +1,92 @@
+/* ==================== 倒數計時與婚禮資訊卡片 ==================== */
+.countdown-section {
+  background-color: #ffffff;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.countdown-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.countdown-box {
+  display: flex;
+  flex-direction: column;
+  min-width: 65px;
+}
+
+.countdown-box span:first-child {
+  font-family: var(--font-en-serif);
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.countdown-box .label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.letter-intro {
+  margin-bottom: 40px;
+  font-size: 1.05rem;
+  line-height: 2.2;
+}
+
+.card-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.detail-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  padding: 30px 20px;
+  border-radius: 6px;
+}
+
+.detail-card h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.detail-card .highlight {
+  color: var(--accent-hover);
+  font-weight: 500;
+}
+
+.text-link {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--accent-hover);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.text-link:hover {
+  text-decoration: underline;
+}
+
+.calendar-btn-group {
+  margin-top: 18px;
+}
+
+.btn-cal {
+  display: inline-block;
+  padding: 8px 20px;
+  font-size: 13px;
+  color: #6e6259;
+  border: 1px solid #dcd5cc;
+  border-radius: 20px;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.btn-cal:hover {
+  background: #6e6259;
+  color: #ffffff;
+}
