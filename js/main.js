@@ -1,6 +1,6 @@
 // 進入點：初始化各區塊功能
 
-import { WEDDING_DATE, GALLERY_PHOTOS, WATERMARK } from './config.js';
+import { WEDDING_DATE, GALLERY_FEATURED, GALLERY_PHOTOS, WATERMARK } from './config.js';
 import { initIntro } from './intro.js';
 import { playOpenEffect } from './fx/open-effects.js';
 import { initMusicPlayer } from './music-player.js';
@@ -21,5 +21,5 @@ initSnow({
 });
 
 initCountdown(WEDDING_DATE);
-initGallery({ photos: GALLERY_PHOTOS, watermark: WATERMARK });
+initGallery({ featured: GALLERY_FEATURED, photos: GALLERY_PHOTOS, watermark: WATERMARK });
 initReveal();

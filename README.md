@@ -48,6 +48,7 @@ js/
 
 ## 常見修改
 
-- **新增或更換藝廊照片**：把照片放進 `assets/images/gallery/`，再到 `js/config.js` 的 `GALLERY_PHOTOS` 加上檔名。
+- **新增或更換藝廊照片**：把照片放進 `assets/images/gallery/`，再到 `js/config.js` 的 `GALLERY_PHOTOS` 加上檔名，並標明直式 `portrait` 或橫式 `landscape`。
+- **更換置頂放大的照片**：`js/config.js` 的 `GALLERY_FEATURED`。
 - **修改浮水印文字**：`js/config.js` 的 `WATERMARK`。
 - **修改倒數目標時間**：`js/config.js` 的 `WEDDING_DATE`。

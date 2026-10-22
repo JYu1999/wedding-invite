@@ -1,8 +1,11 @@
 /* ==================== 相片藝廊、浮水印與燈箱 ==================== */
-/* 照片牆：多欄瀑布流排列，每張照片保持原始比例，直式、橫式都不會被裁切 */
+/* 照片牆：精選照片置頂獨佔一列並放大，其餘照片依直式／橫式比例排列，都不會被裁切
+   電腦版 6 格網格：每張佔 2 格，三張一列；排列順序由 JS 依螢幕寬度給 --order-wide / --order-narrow */
 .gallery-grid {
-  columns: 3;
-  column-gap: 14px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  align-items: start;
+  gap: 14px;
   max-width: 900px;
   margin: 28px auto;
   padding: 0 20px;
@@ -15,15 +18,49 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   background-color: #f0ebe4;
   cursor: pointer;
-  break-inside: avoid;
-  margin-bottom: 14px;
+  grid-column: span 2;
+  order: var(--order-wide);
 }
 
 .gallery-item img {
   width: 100%;
   height: auto;
   display: block;
+  object-fit: cover;
   transition: transform 0.4s ease;
+}
+
+/* 先依直式／橫式預留比例，照片載入前版面就不會跳動 */
+.gallery-item--portrait img {
+  aspect-ratio: 2 / 3;
+}
+
+.gallery-item--landscape img,
+.gallery-item--featured img {
+  aspect-ratio: 3 / 2;
+}
+
+/* 精選照片：最上面獨立一列、滿版寬度 */
+.gallery-item--featured {
+  grid-column: 1 / -1;
+  order: -1;
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(83, 52, 27, 0.14);
+  margin-bottom: 10px;
+}
+
+.gallery-item--featured .watermark {
+  right: 16px;
+  bottom: 14px;
+}
+
+.gallery-item--featured .watermark-names {
+  font-size: 10px;
+  letter-spacing: 3px;
+}
+
+.gallery-item--featured .watermark-script {
+  font-size: 20px;
 }
 
 .gallery-item:hover img {
@@ -62,16 +99,44 @@
   margin-top: -1px;
 }
 
+/* 手機兩欄：直式兩張一列，橫式獨佔一列；精選照片撐滿整個螢幕寬度，比其他照片更大 */
 @media (max-width: 650px) {
   .gallery-grid {
-    columns: 2;
-    column-gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
     padding: 0 14px;
     margin: 20px auto;
   }
 
   .gallery-item {
-    margin-bottom: 10px;
+    grid-column: span 1;
+    order: var(--order-narrow);
+  }
+
+  .gallery-item--landscape {
+    grid-column: 1 / -1;
+  }
+
+  .gallery-item--featured {
+    grid-column: 1 / -1;
+    order: -1;
+    /* 網格置中，往左右各撐出「螢幕寬度一半 − 欄寬一半」就是滿版 */
+    margin: 0 calc(50% - 50vw) 8px;
+    border-radius: 0;
+  }
+
+  .gallery-item--featured .watermark {
+    right: 12px;
+    bottom: 10px;
+  }
+
+  .gallery-item--featured .watermark-names {
+    font-size: 8px;
+    letter-spacing: 2px;
+  }
+
+  .gallery-item--featured .watermark-script {
+    font-size: 16px;
   }
 
   .watermark {
