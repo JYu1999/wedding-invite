@@ -27,6 +27,8 @@
   object-position: center 36%;
 }
 
+
+
 /* 柔和羽化漸層融化照片下緣 */
 .hero-gradient-fade {
   position: absolute;
@@ -108,7 +110,7 @@
   font-family: var(--font-serif);
   font-size: 26px;
   font-weight: 600;
-  color: #2b241e;
+  color: #53341b;
   letter-spacing: 3px;
   line-height: 1.2;
 }

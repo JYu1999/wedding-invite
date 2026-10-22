@@ -90,3 +90,75 @@
   background: #6e6259;
   color: #ffffff;
 }
+
+/* 月曆外層容器 */
+.wedding-calendar-card {
+  max-width: 320px;
+  margin: 1.8rem auto 1.5rem;
+  padding: 1.2rem;
+  background: #ffffff;
+  font-family: inherit;
+  color: #555555;
+}
+
+/* 月份標題 */
+.calendar-month-title {
+  font-size: 0.95rem;
+  letter-spacing: 0.2em;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 1.2rem;
+  color: #666666;
+}
+
+/* 7 列網格排版 */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  row-gap: 10px;
+  column-gap: 4px;
+  text-align: center;
+}
+
+/* 星期欄位 */
+.day-name {
+  font-size: 0.75rem;
+  color: #999999;
+  letter-spacing: 0.05em;
+  padding-bottom: 6px;
+  font-weight: 400;
+}
+
+/* 一般日期 */
+.cal-day {
+  font-size: 0.9rem;
+  color: #666666;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* 12/20 特殊愛心樣式 */
+.wedding-day {
+  color: #c95d63; /* 質感乾燥玫瑰紅 / 暖紅 */
+  font-weight: 600;
+}
+
+.wedding-day .heart-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.2rem;
+  color: #f7dede; /* 淡粉色愛心底色 */
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.wedding-day .day-number {
+  position: relative;
+  z-index: 2;
+}
