@@ -152,7 +152,6 @@
         </div>
       </div>
 
-      <a href="#rsvp" class="btn-primary">填寫出席回函</a>
     </div>
   </section>
 
@@ -399,18 +398,120 @@
   const canvas = document.getElementById('petal-canvas');
   if (canvas) {
     const ctx = canvas.getContext('2d');
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+    let width, height;
+
+    // 依裝置像素比放大畫布，讓雪花結晶在高解析螢幕上保持清晰
+    const resizeCanvas = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resizeCanvas();
 
     // 視窗縮放時自動適應大小
-    window.addEventListener('resize', () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    });
+    window.addEventListener('resize', resizeCanvas);
 
     // 依螢幕寬度決定雪花密度（手機版適度減少，避免耗電）
     const snowflakeCount = width < 768 ? 35 : 65;
     const snowflakes = [];
+
+    // 預先把各種雪花造型繪製到離屏畫布，動畫時只需貼圖，手機也不卡
+    const SPRITE_SIZE = 64;
+    const line = (c, x1, y1, x2, y2) => {
+      c.moveTo(x1, y1);
+      c.lineTo(x2, y2);
+    };
+    // 雪花為六角對稱：只畫一支臂，旋轉 6 次
+    const sixArms = (c, r, drawArm) => {
+      for (let i = 0; i < 6; i++) {
+        c.save();
+        c.rotate((Math.PI / 3) * i);
+        drawArm(c, r);
+        c.restore();
+      }
+    };
+
+    const flakeShapes = [
+      // 簡約星芒：直線主幹 + 末端小叉
+      (c, r) => sixArms(c, r, (c, r) => {
+        line(c, 0, 0, 0, -r);
+        line(c, 0, -r * 0.68, -r * 0.2, -r * 0.88);
+        line(c, 0, -r * 0.68, r * 0.2, -r * 0.88);
+      }),
+      // 蕨葉狀：主幹兩側多對由長到短的細枝
+      (c, r) => sixArms(c, r, (c, r) => {
+        line(c, 0, 0, 0, -r);
+        [0.32, 0.54, 0.74].forEach((p, i) => {
+          const len = r * (0.3 - i * 0.07);
+          line(c, 0, -r * p, -len, -r * p - len);
+          line(c, 0, -r * p, len, -r * p - len);
+        });
+      }),
+      // 六角板狀：中心六角形 + 主幹 + 菱形尖端
+      (c, r) => {
+        const hex = r * 0.3;
+        for (let i = 0; i <= 6; i++) {
+          const a = (Math.PI / 3) * i;
+          if (i === 0) c.moveTo(Math.sin(a) * hex, -Math.cos(a) * hex);
+          else c.lineTo(Math.sin(a) * hex, -Math.cos(a) * hex);
+        }
+        sixArms(c, r, (c, r) => {
+          line(c, 0, -hex, 0, -r * 0.62);
+          c.moveTo(0, -r * 0.62);
+          c.lineTo(-r * 0.13, -r * 0.8);
+          c.lineTo(0, -r);
+          c.lineTo(r * 0.13, -r * 0.8);
+          c.closePath();
+        });
+      },
+      // 中段 V 形分枝的經典雪花
+      (c, r) => sixArms(c, r, (c, r) => {
+        line(c, 0, 0, 0, -r);
+        line(c, 0, -r * 0.42, -r * 0.3, -r * 0.7);
+        line(c, 0, -r * 0.42, r * 0.3, -r * 0.7);
+        line(c, 0, -r * 0.18, -r * 0.14, -r * 0.3);
+        line(c, 0, -r * 0.18, r * 0.14, -r * 0.3);
+      }),
+    ];
+
+    const createSprite = (paint) => {
+      const sprite = document.createElement('canvas');
+      sprite.width = sprite.height = SPRITE_SIZE;
+      const c = sprite.getContext('2d');
+      c.translate(SPRITE_SIZE / 2, SPRITE_SIZE / 2);
+      paint(c);
+      return sprite;
+    };
+
+    const crystalSprites = flakeShapes.map((shape) => createSprite((c) => {
+      c.strokeStyle = '#ffffff';
+      c.lineWidth = 3.4;
+      c.lineCap = 'round';
+      c.lineJoin = 'round';
+      // 淡淡的灰藍光暈：在照片上是白色雪花，在淺色底也看得見輪廓
+      c.shadowColor = 'rgba(140, 158, 180, 0.6)';
+      c.shadowBlur = 3;
+      c.beginPath();
+      shape(c, SPRITE_SIZE / 2 - 6);
+      c.stroke();
+    }));
+
+    // 遠景柔焦小雪點
+    const dotSprite = createSprite((c) => {
+      const r = SPRITE_SIZE / 2;
+      const glow = c.createRadialGradient(0, 0, 0, 0, 0, r);
+      glow.addColorStop(0, 'rgba(255, 255, 255, 1)');
+      glow.addColorStop(0.45, 'rgba(255, 255, 255, 0.8)');
+      glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      c.fillStyle = glow;
+      c.arc(0, 0, r, 0, Math.PI * 2);
+      c.fill();
+    });
 
     class Snowflake {
       constructor() {
@@ -418,37 +519,45 @@
       }
 
       reset(initial = false) {
+        // 約六成是不同造型的六角結晶，其餘為遠景柔焦小雪點
+        this.isCrystal = Math.random() < 0.6;
+        this.sprite = this.isCrystal
+          ? crystalSprites[Math.floor(Math.random() * crystalSprites.length)]
+          : dotSprite;
+        this.size = this.isCrystal ? Math.random() * 12 + 9 : Math.random() * 4 + 3; // 繪製尺寸 (px)
         this.x = Math.random() * width;
         // 初始時均勻分布在畫面上，後續重置則從頂部外生成
-        this.y = initial ? Math.random() * height : -15;
-        this.radius = Math.random() * 2.8 + 1.2; // 雪花半徑 (1.2px ~ 4px)
-        this.speedY = Math.random() * 0.4 + 0.25; // 垂直掉落速度（緩慢飄落）
+        this.y = initial ? Math.random() * height : -this.size;
+        // 越大的雪花（離鏡頭越近）掉得稍快，營造景深
+        this.speedY = this.isCrystal ? this.size * 0.02 + 0.2 : Math.random() * 0.15 + 0.18;
         this.speedX = Math.random() * 0.2 - 0.1; // 基礎微風橫移
-        this.opacity = Math.random() * 0.5 + 0.35; // 柔和透明度
+        this.opacity = this.isCrystal ? Math.random() * 0.3 + 0.65 : Math.random() * 0.4 + 0.35;
         this.angle = Math.random() * Math.PI * 2;
         this.angleSpeed = Math.random() * 0.01 + 0.005; // 左右擺動頻率
         this.swayRange = Math.random() * 0.4 + 0.2; // 左右搖曳幅度
+        this.rotation = Math.random() * Math.PI * 2;
+        this.rotationSpeed = (Math.random() - 0.5) * 0.012; // 緩慢自轉，方向各異
       }
 
       update() {
         this.angle += this.angleSpeed;
         this.x += Math.sin(this.angle) * this.swayRange + this.speedX;
         this.y += this.speedY;
+        this.rotation += this.rotationSpeed;
 
         // 當雪花超出視窗底部或左右兩側時，從上方重置
-        if (this.y > height + 10 || this.x < -10 || this.x > width + 10) {
+        if (this.y > height + this.size || this.x < -this.size || this.x > width + this.size) {
           this.reset(false);
         }
       }
 
       draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-        ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
-        ctx.shadowBlur = 4; // 雪花邊緣微發光
-        ctx.fill();
-        ctx.closePath();
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation);
+        ctx.drawImage(this.sprite, -this.size / 2, -this.size / 2, this.size, this.size);
+        ctx.restore();
       }
     }
 
