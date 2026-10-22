@@ -3,20 +3,25 @@
 // 倒數計時的目標時間
 export const WEDDING_DATE = new Date('2026-12-20T12:00:00');
 
-// 美好剪影：照片放在 assets/images/gallery/，新增照片只要把檔名加進來
+// 婚紗剪影：照片放在 assets/images/gallery/
 const GALLERY_DIR = 'assets/images/gallery/';
+
+// 最喜歡的一張：放在最上面、獨立一列並放大
+export const GALLERY_FEATURED = GALLERY_DIR + 'Cody036.jpg';
+
+// 其他照片：新增照片時加一行並標明直式（portrait）或橫式（landscape），
+// 排版會依此把直式並排、橫式另成一列，照片都不裁切
 export const GALLERY_PHOTOS = [
-  'Cody036.jpg',
-  'Cody080.jpg',
-  'Cody151.jpg',
-  'Cody169.jpg',
-  'Cody237.jpg',
-  'Cody245.jpg',
-  'Cody312.jpg',
-  'Cody333.jpg',
-  'Cody362.jpg',
-  'Cody368.jpg',
-].map((file) => GALLERY_DIR + file);
+  { file: 'Cody080.jpg', shape: 'portrait' },
+  { file: 'Cody151.jpg', shape: 'portrait' },
+  { file: 'Cody169.jpg', shape: 'portrait' },
+  { file: 'Cody312.jpg', shape: 'landscape' },
+  { file: 'Cody237.jpg', shape: 'portrait' },
+  { file: 'Cody245.jpg', shape: 'portrait' },
+  { file: 'Cody333.jpg', shape: 'landscape' },
+  { file: 'Cody362.jpg', shape: 'portrait' },
+  { file: 'Cody368.jpg', shape: 'landscape' },
+].map(({ file, shape }) => ({ src: GALLERY_DIR + file, shape }));
 
 // 藝廊照片與燈箱上的浮水印
 export const WATERMARK = {

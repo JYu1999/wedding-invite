@@ -18,22 +18,29 @@ python3 -m http.server 8000
 index.html              頁面結構（只有標記，沒有內嵌樣式與腳本）
 assets/
   images/hero.jpg       首頁主視覺照片
+  images/favicon-*.png  網站圖示（分頁小圖）
+  images/apple-touch-icon.png  iPhone 加入主畫面的圖示
   images/gallery/       美好剪影照片
   audio/bgm.mp3         背景音樂
 css/
   base.css              色彩字型變數、重置、共用區塊、頁尾
-  intro.css             開場拆信封動畫
+  intro.css             開場拆信封、翻面、穿越信紙進入首頁
+  intro-fx.css          拆信封時的金色光芒與閃光
   hero.css              首頁主視覺、新人與家長資訊
   details.css           倒數計時、婚禮資訊卡片
-  gallery.css           相片藝廊、浮水印、燈箱
+  gallery.css           相片藝廊（瀑布流、不裁切）、浮水印、燈箱
   music-player.css      黑膠唱片音樂播放器
 js/
   main.js               進入點，初始化各模組
   config.js             可調整內容：倒數時間、照片清單、浮水印文字
-  intro.js              拆信封流程
+  intro.js              拆信封 → 點擊翻面 → 鏡頭穿越信紙的流程
+  fx/
+    open-effects.js     拆信封「開寶箱」特效：金色冰晶綻放
+    particles.js        特效用的粒子系統
+    sound.js            Web Audio 即時合成的音效
   music-player.js       背景音樂播放與播放器顯示
   countdown.js          倒數計時
-  gallery.js            產生照片格、浮水印、燈箱
+  gallery.js            產生照片牆、浮水印、燈箱（按鈕／方向鍵／滑動切換）
   reveal.js             滾動淡入
   snow/
     snow.js             照片上的雪景動畫與融雪互動
@@ -43,6 +50,7 @@ js/
 
 ## 常見修改
 
-- **新增或更換藝廊照片**：把照片放進 `assets/images/gallery/`，再到 `js/config.js` 的 `GALLERY_PHOTOS` 加上檔名。
+- **新增或更換藝廊照片**：把照片放進 `assets/images/gallery/`，再到 `js/config.js` 的 `GALLERY_PHOTOS` 加上檔名，並標明直式 `portrait` 或橫式 `landscape`。
+- **更換置頂放大的照片**：`js/config.js` 的 `GALLERY_FEATURED`。
 - **修改浮水印文字**：`js/config.js` 的 `WATERMARK`。
 - **修改倒數目標時間**：`js/config.js` 的 `WEDDING_DATE`。

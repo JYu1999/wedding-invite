@@ -156,9 +156,31 @@
   z-index: 1;
   pointer-events: none;
   opacity: 0.85;
+  /* 柔和的螢光閃爍：只改變光暈，不縮放 */
+  animation: heartGlow 2.4s ease-in-out infinite;
+}
+
+@keyframes heartGlow {
+  0%, 100% {
+    text-shadow: 0 0 3px rgba(232, 128, 138, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 10px rgba(232, 128, 138, 0.8), 0 0 3px rgba(255, 190, 196, 0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wedding-day .heart-icon {
+    animation: none;
+  }
 }
 
 .wedding-day .day-number {
   position: relative;
   z-index: 2;
+}
+/* 12/25 聖誕節以 emoji 取代日期 */
+.christmas-day {
+  font-size: 1.25rem;
+  line-height: 1;
 }

@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>我們結婚了 | 詹傑宇 & 潘昱綺</title>
 
+  <!-- 網站圖示：分頁小圖、Android、iPhone 加入主畫面 -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/images/favicon-192.png">
+  <link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png">
+
   <!-- 字型載入 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,6 +18,7 @@
   <!-- 樣式：依區塊拆分 -->
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/intro.css">
+  <link rel="stylesheet" href="css/intro-fx.css">
   <link rel="stylesheet" href="css/hero.css">
   <link rel="stylesheet" href="css/details.css">
   <link rel="stylesheet" href="css/gallery.css">
@@ -20,25 +26,32 @@
 
   <script type="module" src="js/main.js"></script>
 </head>
-<body>
+<body class="intro-active">
 
   <!-- ==================== 1. 3D 拆信封開場遮罩 ==================== -->
   <div id="intro-overlay">
     <div class="envelope-wrapper">
-      <p class="envelope-hint">點擊接收邀請函<br><span>OPEN INVITATION</span></p>
+      <p class="envelope-hint open-hint">點擊接收邀請函<br><span>OPEN INVITATION</span></p>
 
-       <div class="envelope-container" id="envelopeBox">
+      <div class="envelope-container" id="envelopeBox">
         <!-- 信封底座 -->
         <div class="envelope-back"></div>
 
-        <!-- 內部信件卡片 -->
+        <!-- 內部信件卡片：正面是邀請文字，背面中央的圓窗是「穿越信件」進入首頁的入口 -->
         <div class="envelope-letter">
-          <div class="letter-inner">
-            <div class="letter-en-title">Wedding Invitation</div>
-            <div class="letter-names">詹傑宇 & 潘昱綺</div>
-            <div class="letter-divider"></div>
-            <p class="letter-text">誠摯邀請您見證我們的幸福時刻</p>
-            <p class="letter-subtext">2026 . 12 . 20</p>
+          <div class="letter-face letter-front">
+            <div class="letter-inner">
+              <div class="letter-en-title">Wedding Invitation</div>
+              <div class="letter-names">詹傑宇 & 潘昱綺</div>
+              <div class="letter-divider"></div>
+              <p class="letter-text">誠摯邀請您見證我們的幸福時刻</p>
+              <p class="letter-subtext">2026 . 12 . 20</p>
+            </div>
+          </div>
+          <div class="letter-face letter-back">
+            <p class="letter-back-script">Welcome</p>
+            <div class="letter-portal" id="letterPortal"></div>
+            <p class="letter-back-caption">JYU & CHI</p>
           </div>
         </div>
 
@@ -50,6 +63,8 @@
           <span class="seal-icon">✦</span>
         </div>
       </div>
+
+      <p class="envelope-hint flip-hint">點擊翻面<br><span>TAP TO FLIP</span></p>
     </div>
   </div>
 
@@ -71,8 +86,8 @@
 
     <!-- 內文文字區 -->
     <div class="hero-content">
-      <!-- 主角姓名 -->
-      <div class="names">
+      <!-- 新人與雙方家長：同一個三欄格線，新郎/男方家長、新娘/女方家長各自對齊同一條中線 -->
+      <div class="couple">
         <div class="person">
           <span class="role">新郎</span>
           <span class="name">詹傑宇</span>
@@ -82,10 +97,7 @@
           <span class="role">新娘</span>
           <span class="name">潘昱綺</span>
         </div>
-      </div>
 
-      <!-- 雙方家長資訊：女方爸爸下方並列括號舊名 -->
-      <div class="parents-container">
         <!-- 男方家長 -->
         <div class="parents-col">
           <span class="parent-badge">男方家長</span>
@@ -95,7 +107,7 @@
           </div>
         </div>
 
-        <!-- 女方家長 -->
+        <!-- 女方家長：女方爸爸下方並列括號舊名 -->
         <div class="parents-col">
           <span class="parent-badge">女方家長</span>
           <div class="parent-names">
@@ -206,7 +218,8 @@
                 <span class="cal-day">22</span>
                 <span class="cal-day">23</span>
                 <span class="cal-day">24</span>
-                <span class="cal-day">25</span>
+                <!-- 12月25日 聖誕節 -->
+                <span class="cal-day christmas-day" role="img" aria-label="25 聖誕節">🧑‍🎄</span>
                 <span class="cal-day">26</span>
                 <span class="cal-day">27</span>
                 <span class="cal-day">28</span>
@@ -240,10 +253,20 @@
   </section>
 
   <!-- 相片燈箱放大容器 -->
-  <div class="lightbox" id="lightbox">
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="婚紗照瀏覽">
+    <button class="lightbox-btn lightbox-close" id="lightboxClose" type="button" aria-label="關閉">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <button class="lightbox-btn lightbox-nav lightbox-prev" id="lightboxPrev" type="button" aria-label="上一張">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
     <div class="lightbox-frame">
       <img id="lightboxImg" src="" alt="放大照片">
     </div>
+    <button class="lightbox-btn lightbox-nav lightbox-next" id="lightboxNext" type="button" aria-label="下一張">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+    <p class="lightbox-counter" id="lightboxCounter"></p>
   </div>
 
   <!-- ==================== 6. 頁尾 ==================== -->
