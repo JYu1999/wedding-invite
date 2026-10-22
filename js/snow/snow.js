@@ -168,7 +168,7 @@ export function initSnow({ canvas, area }) {
         flake.reset();
       } else if (flake.y + flake.size * 0.3 >= groundY - pile.heightAt(flake.x)) {
         // 碰到照片底部（或已堆起的雪面）就加入積雪
-        pile.deposit(flake.x, flake.depositArea, flake.size * 1.2);
+        pile.deposit(flake.x, flake.depositArea, flake.size * 3);
         flake.reset();
       }
     }
@@ -183,7 +183,7 @@ export function initSnow({ canvas, area }) {
 
     ctx.clearRect(0, 0, width, height);
     flakes.forEach((flake) => flake.draw(ctx));
-    pile.draw(ctx, groundY);
+    pile.draw(ctx, groundY, now);
     droplets.forEach((drop) => drop.draw(ctx));
 
     rafId = requestAnimationFrame(frame);

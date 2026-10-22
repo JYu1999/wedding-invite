@@ -1,35 +1,95 @@
 // 開場拆信封：open（掀蓋）→ pulling（信紙從袋中抽出，仍被袋身遮擋）→ pulled（信紙移到最前方放大）
+// → 使用者看完正面後點擊翻面 → 鏡頭推進穿過信紙背面的圓窗，進入首頁
 
 const PULL_START_MS = 700;   // 封蓋翻開後開始抽信
 const PULLED_MS = 2150;      // 信紙完全離開信封
-const AUTO_ENTER_MS = 5300;  // 保留閱讀時間後自動進入首頁
+const FLIP_HINT_MS = 3000;   // 信紙放大定位後才提示「點擊翻面」
+const FLIP_MS = 1000;        // 與 CSS .flipped 的 transition 一致
+const ZOOM_DELAY_MS = 350;   // 翻到背面後停頓一下再推進
+const ZOOM_MS = 2000;
+const ZOOM_MAX_SCALE = 70;
+const HOLE_FEATHER = 48;     // 與 CSS 遮罩的羽化寬度一致
 
-export function initIntro({ onOpen } = {}) {
+const smoothstep = (a, b, t) => {
+  const x = Math.min(Math.max((t - a) / (b - a), 0), 1);
+  return x * x * (3 - 2 * x);
+};
+
+export function initIntro({ onOpen, onEnter } = {}) {
   const overlay = document.getElementById('intro-overlay');
   const envelope = document.getElementById('envelopeBox');
-  if (!overlay || !envelope) return;
+  const portal = document.getElementById('letterPortal');
+  if (!overlay || !envelope || !portal) return;
 
-  let done = false;
+  let stage = 'idle';
+
   const finish = () => {
-    if (done) return;
-    done = true;
-    overlay.classList.add('fade-out');
+    overlay.classList.add('done');
+    document.body.classList.remove('intro-active', 'intro-entering');
   };
 
-  overlay.addEventListener('click', () => {
-    // 信紙完全抽出後，再點一下可直接進入首頁
-    if (envelope.classList.contains('pulled')) {
+  // 鏡頭以背面圓窗為中心指數放大，同時在遮罩上挖洞，洞裡就是首頁
+  const zoomThrough = () => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       finish();
       return;
     }
-    if (overlay.classList.contains('opening')) return;
 
-    overlay.classList.add('opening');
-    envelope.classList.add('open');
-    onOpen?.();
+    const box = envelope.getBoundingClientRect();
+    const hole = portal.getBoundingClientRect();
+    const cx = hole.left + hole.width / 2;
+    const cy = hole.top + hole.height / 2;
+    const portalRadius = hole.width / 2;
+    const maxRadius = Math.hypot(window.innerWidth, window.innerHeight);
 
-    setTimeout(() => envelope.classList.add('pulling'), PULL_START_MS);
-    setTimeout(() => envelope.classList.add('pulled'), PULLED_MS);
-    setTimeout(finish, AUTO_ENTER_MS);
+    envelope.style.transformOrigin = `${cx - box.left}px ${cy - box.top}px`;
+    envelope.classList.add('zooming');
+    overlay.style.setProperty('--hole-x', `${cx}px`);
+    overlay.style.setProperty('--hole-y', `${cy}px`);
+    overlay.style.setProperty('--hole-r', `${-HOLE_FEATHER}px`);
+    overlay.classList.add('entering');
+    document.body.classList.add('intro-entering');
+
+    const start = performance.now();
+    const frame = (now) => {
+      const t = Math.min((now - start) / ZOOM_MS, 1);
+      // 指數放大：越靠近推得越快，像鏡頭一路衝進信紙
+      const scale = ZOOM_MAX_SCALE ** (t ** 1.7);
+      envelope.style.transform = `scale(${scale})`;
+
+      // 圓窗中心先透出光，再隨著推進把洞撐開到整個畫面
+      const open = smoothstep(0.12, 0.7, t);
+      const radius = -HOLE_FEATHER + (portalRadius * scale * 0.85 + HOLE_FEATHER) * open;
+      overlay.style.setProperty('--hole-r', `${radius}px`);
+
+      if (t < 1 && radius < maxRadius) requestAnimationFrame(frame);
+      else finish();
+    };
+    requestAnimationFrame(frame);
+  };
+
+  overlay.addEventListener('click', () => {
+    if (stage === 'idle') {
+      stage = 'opening';
+      overlay.classList.add('opening');
+      envelope.classList.add('open');
+      onOpen?.(envelope);
+
+      setTimeout(() => envelope.classList.add('pulling'), PULL_START_MS);
+      setTimeout(() => envelope.classList.add('pulled'), PULLED_MS);
+      setTimeout(() => {
+        stage = 'pulled';
+        overlay.classList.add('can-flip');
+      }, FLIP_HINT_MS);
+      return;
+    }
+
+    if (stage === 'pulled') {
+      stage = 'entering';
+      overlay.classList.remove('can-flip');
+      envelope.classList.add('flipped');
+      onEnter?.();
+      setTimeout(zoomThrough, FLIP_MS + ZOOM_DELAY_MS);
+    }
   });
 }

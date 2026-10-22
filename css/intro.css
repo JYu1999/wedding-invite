@@ -10,13 +10,37 @@
   transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), visibility 1s;
 }
 
-#intro-overlay.fade-out {
-  opacity: 0;
-  visibility: hidden;
+#intro-overlay.done {
+  display: none;
+}
+
+/* 穿越信件時：遮罩挖一個圓洞，從洞裡看到首頁（洞的位置與大小由 JS 逐幀更新） */
+#intro-overlay.entering {
+  --hole-x: 50%;
+  --hole-y: 50%;
+  --hole-r: 0px;
+  -webkit-mask-image: radial-gradient(circle at var(--hole-x) var(--hole-y), transparent var(--hole-r), #000 calc(var(--hole-r) + 48px));
+  mask-image: radial-gradient(circle at var(--hole-x) var(--hole-y), transparent var(--hole-r), #000 calc(var(--hole-r) + 48px));
   pointer-events: none;
 }
 
+/* 開場期間鎖住捲動，進入首頁時一定停在最上方 */
+body.intro-active {
+  overflow: hidden;
+}
+
+/* 開場期間首頁先放大一點，穿越信件時再慢慢落定，像鏡頭推進後停下 */
+body.intro-active .hero {
+  transform: scale(1.18);
+}
+
+body.intro-entering .hero {
+  transform: scale(1);
+  transition: transform 2.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .envelope-wrapper {
+  position: relative;
   text-align: center;
   cursor: pointer;
   padding: 15px;
@@ -68,15 +92,59 @@
   left: 10px;
   width: calc(100% - 20px);
   height: calc(100% - 16px);
-  background: #fffdfa;
   border-radius: 6px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  z-index: 2;
+  transform-style: preserve-3d;
+  transition: transform 1.4s cubic-bezier(0.45, 0, 0.25, 1);
+}
+
+/* 信紙正反兩面：翻面時背對鏡頭的那面隱藏 */
+.letter-face {
+  position: absolute;
+  inset: 0;
+  background: #fffdfa;
+  border-radius: 6px;
   border: 1px solid rgba(220, 213, 204, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2;
-  transition: transform 1.4s cubic-bezier(0.45, 0, 0.25, 1);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.letter-back {
+  transform: rotateY(180deg);
+  flex-direction: column;
+  gap: 8px;
+}
+
+.letter-back-script {
+  font-family: var(--font-script);
+  font-size: 24px;
+  line-height: 1;
+  color: #5a5048;
+}
+
+/* 背面中央的圓窗：穿越信件的入口，中心透著暖光 */
+.letter-portal {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, #fff8ef 45%, #f3e6d6 100%);
+  border: 1px solid rgba(176, 140, 90, 0.55);
+  box-shadow:
+    0 0 0 4px #fffdfa,
+    0 0 0 5px rgba(176, 140, 90, 0.3),
+    inset 0 0 12px rgba(214, 180, 130, 0.35);
+}
+
+.letter-back-caption {
+  font-family: var(--font-en-serif);
+  font-size: 10px;
+  letter-spacing: 4px;
+  margin-right: -4px;
+  color: #a89f96;
 }
 
 .letter-inner {
@@ -202,8 +270,9 @@
   color: #8c7e72;
 }
 
-/* 拆信流程：open（掀蓋）→ pulling（信紙從袋中抽出，仍被袋身遮擋）→ pulled（信紙完全抽出後移到最前方放大） */
-#intro-overlay.opening .envelope-hint {
+/* 拆信流程：open（掀蓋）→ pulling（信紙從袋中抽出，仍被袋身遮擋）→ pulled（信紙完全抽出後移到最前方放大）
+   → flipped（點擊翻到背面）→ 鏡頭推進穿過背面圓窗 */
+#intro-overlay.opening .open-hint {
   animation: none;
   opacity: 0;
   transition: opacity 0.5s ease;
@@ -231,4 +300,43 @@
 .envelope-container.pulled .envelope-flap {
   opacity: 0;
   transition: opacity 0.6s ease;
+}
+
+/* 「點擊翻面」提示：信紙完全抽出後才出現在信封下方 */
+.flip-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin: 18px 0 0;
+  opacity: 0;
+  visibility: hidden;
+  animation: none;
+  transition: opacity 0.6s ease, visibility 0.6s;
+}
+
+#intro-overlay.can-flip .flip-hint {
+  opacity: 1;
+  visibility: visible;
+  animation: pulseHint 2s 0.6s infinite ease-in-out;
+}
+
+.envelope-container.flipped .envelope-letter {
+  transform: translateY(0) scale(1.18) rotateY(180deg);
+  transition: transform 1s cubic-bezier(0.5, 0, 0.2, 1);
+}
+
+/* 鏡頭推進由 JS 逐幀設定 transform */
+.envelope-container.zooming {
+  will-change: transform;
+}
+
+@media (max-width: 480px) {
+  .letter-back-script {
+    font-size: 22px;
+  }
+  .letter-portal {
+    width: 52px;
+    height: 52px;
+  }
 }

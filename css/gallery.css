@@ -1,8 +1,8 @@
 /* ==================== 相片藝廊、浮水印與燈箱 ==================== */
+/* 照片牆：多欄瀑布流排列，每張照片保持原始比例，直式、橫式都不會被裁切 */
 .gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  columns: 3;
+  column-gap: 14px;
   max-width: 900px;
   margin: 28px auto;
   padding: 0 20px;
@@ -15,12 +15,13 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   background-color: #f0ebe4;
   cursor: pointer;
+  break-inside: avoid;
+  margin-bottom: 14px;
 }
 
 .gallery-item img {
   width: 100%;
-  height: 250px;
-  object-fit: cover;
+  height: auto;
   display: block;
   transition: transform 0.4s ease;
 }
@@ -29,16 +30,19 @@
   transform: scale(1.04);
 }
 
-/* 浮水印：右下角細字 JYU & CHI + 手寫 Wedding */
+/* 浮水印：右下角細字 JYU & CHI + 手寫 Wedding
+   半透明白字加深色柔影，淺色或純白背景上也看得清楚 */
 .watermark {
   position: absolute;
-  right: 12px;
-  bottom: 10px;
+  right: 9px;
+  bottom: 8px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  color: rgba(255, 255, 255, 0.82);
-  text-shadow: 0 1px 6px rgba(40, 30, 24, 0.35);
+  color: rgba(255, 255, 255, 0.78);
+  text-shadow:
+    0 1px 2px rgba(40, 30, 24, 0.45),
+    0 0 8px rgba(40, 30, 24, 0.3);
   pointer-events: none;
   user-select: none;
   line-height: 1;
@@ -46,42 +50,42 @@
 
 .watermark-names {
   font-family: var(--font-en-serif);
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 500;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   padding-right: 2px;
 }
 
 .watermark-script {
   font-family: var(--font-script);
-  font-size: 20px;
+  font-size: 15px;
   margin-top: -1px;
 }
 
 @media (max-width: 650px) {
   .gallery-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    columns: 2;
+    column-gap: 10px;
     padding: 0 14px;
     margin: 20px auto;
   }
 
-  .gallery-item img {
-    height: 180px;
+  .gallery-item {
+    margin-bottom: 10px;
   }
 
   .watermark {
-    right: 8px;
-    bottom: 7px;
+    right: 6px;
+    bottom: 5px;
   }
 
   .watermark-names {
-    font-size: 8.5px;
-    letter-spacing: 2px;
+    font-size: 6.5px;
+    letter-spacing: 1.5px;
   }
 
   .watermark-script {
-    font-size: 16px;
+    font-size: 12px;
   }
 }
 
@@ -89,12 +93,12 @@
 .lightbox {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.88);
+  background: rgba(0, 0, 0, 0.92);
   display: none;
   justify-content: center;
   align-items: center;
   z-index: 10000;
-  cursor: pointer;
+  touch-action: pan-y;
 }
 
 .lightbox.open {
@@ -111,18 +115,115 @@
   max-height: 85vh;
   border-radius: 4px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.25s ease;
+}
+
+.lightbox-frame img.switching {
+  opacity: 0.35;
 }
 
 .lightbox .watermark {
-  right: 18px;
-  bottom: 16px;
+  right: 14px;
+  bottom: 12px;
+  color: rgba(255, 255, 255, 0.72);
+  text-shadow:
+    0 1px 3px rgba(30, 22, 18, 0.55),
+    0 0 12px rgba(30, 22, 18, 0.35);
 }
 
 .lightbox .watermark-names {
-  font-size: 13px;
-  letter-spacing: 4px;
+  font-size: 11px;
+  letter-spacing: 3px;
 }
 
 .lightbox .watermark-script {
-  font-size: 28px;
+  font-size: 22px;
+}
+
+/* 燈箱按鈕：右上角關閉、左右切換 */
+.lightbox-btn {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s ease;
+}
+
+.lightbox-btn:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.lightbox-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lightbox-close {
+  top: 16px;
+  right: 16px;
+}
+
+.lightbox-nav {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lightbox-prev {
+  left: 16px;
+}
+
+.lightbox-next {
+  right: 16px;
+}
+
+.lightbox-counter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  font-family: var(--font-en-serif);
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1;
+}
+
+/* 手機：照片幾乎佔滿寬度，左右按鈕縮小、半透明壓在照片兩側 */
+@media (max-width: 650px) {
+  .lightbox-frame img {
+    max-width: 94vw;
+  }
+
+  .lightbox-nav {
+    width: 36px;
+    height: 36px;
+    background: rgba(0, 0, 0, 0.28);
+  }
+
+  .lightbox-prev {
+    left: 8px;
+  }
+
+  .lightbox-next {
+    right: 8px;
+  }
+
+  .lightbox-close {
+    top: 12px;
+    right: 12px;
+  }
 }
