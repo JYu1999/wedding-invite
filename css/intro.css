@@ -29,12 +29,13 @@ body.intro-active {
   overflow: hidden;
 }
 
-/* 開場期間首頁先放大一點，穿越信件時再慢慢落定，像鏡頭推進後停下 */
-body.intro-active .hero {
+/* 開場期間首頁照片先放大一點，穿越信件時再慢慢落定，像鏡頭推進後停下
+   只放大照片本身（被 .hero 的 overflow 裁切），不然手機會因為內容超出而把整個版面撐寬、信封跑偏 */
+body.intro-active .hero-bg-img {
   transform: scale(1.18);
 }
 
-body.intro-entering .hero {
+body.intro-entering .hero-bg-img {
   transform: scale(1);
   transition: transform 2.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -300,6 +301,15 @@ body.intro-entering .hero {
 .envelope-container.pulled .envelope-flap {
   opacity: 0;
   transition: opacity 0.6s ease;
+}
+
+/* 兩個提示都不佔版面高度，信封才會正好在畫面正中央：「點擊接收」在上、「點擊翻面」在下 */
+.open-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: 10px;
 }
 
 /* 「點擊翻面」提示：信紙完全抽出後才出現在信封下方 */
