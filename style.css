@@ -392,8 +392,7 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 2;
-  transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1) 0.5s, 
-              opacity 0.8s ease 1.4s;
+  transition: transform 1.4s cubic-bezier(0.45, 0, 0.25, 1);
 }
 
 .letter-inner {
@@ -491,7 +490,6 @@ body {
   inset: 0;
   background: #ffffff;
   clip-path: polygon(0 0, 0 100%, 50% 52%, 0 0, 100% 0, 100% 100%, 50% 52%, 100% 0);
-  opacity: 0.96;
 }
 
 .envelope-flap {
@@ -503,7 +501,8 @@ body {
   background: #fbf9f6;
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   transform-origin: top center;
-  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  /* 翻到一半（垂直時）才退到信紙後方 */
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s linear 0.35s;
   z-index: 4;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
   border-top-left-radius: 8px;
@@ -519,19 +518,35 @@ body {
   color: #8c7e72;
 }
 
+/* 拆信流程：open（掀蓋）→ pulling（信紙從袋中抽出，仍被袋身遮擋）→ pulled（信紙完全抽出後移到最前方放大） */
+#intro-overlay.opening .envelope-hint {
+  animation: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
 .envelope-container.open .envelope-flap {
   transform: rotateX(180deg);
   z-index: 1;
 }
 
-.envelope-container.open .envelope-letter {
-  transform: translateY(-90px) scale(1.04);
-  z-index: 5;
+.envelope-container.pulling .envelope-letter {
+  /* 往上抽到信紙底部完全離開信封口 */
+  transform: translateY(calc(-100% - 16px));
 }
 
-.envelope-container.open .envelope-letter.fade-away {
+.envelope-container.pulled .envelope-letter {
+  z-index: 5;
+  transform: translateY(0) scale(1.18);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  transition: transform 0.9s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.9s ease;
+}
+
+.envelope-container.pulled .envelope-back,
+.envelope-container.pulled .envelope-pocket,
+.envelope-container.pulled .envelope-flap {
   opacity: 0;
-  transform: translateY(-110px) scale(1.06);
+  transition: opacity 0.6s ease;
 }
 
 /* ==================== 3. 相片藝廊 ==================== */
