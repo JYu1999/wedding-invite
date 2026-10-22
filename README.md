@@ -18,6 +18,8 @@ python3 -m http.server 8000
 index.html              頁面結構（只有標記，沒有內嵌樣式與腳本）
 assets/
   images/hero.jpg       首頁主視覺照片
+  images/favicon-*.png  網站圖示（分頁小圖）
+  images/apple-touch-icon.png  iPhone 加入主畫面的圖示
   images/gallery/       美好剪影照片
   audio/bgm.mp3         背景音樂
 css/
