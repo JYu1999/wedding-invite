@@ -1,0 +1,161 @@
+/* ==================== 音樂播放器：黑膠唱片膠囊 ==================== */
+.music-player-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 20px;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 6px;
+  max-width: 220px;
+  border-radius: 30px;
+
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(220, 213, 204, 0.7);
+
+  /* 滑離首頁後才浮現 */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease, visibility 0.4s ease, transform 0.4s ease;
+}
+
+.music-player-bar.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* 黑膠唱片：播放時旋轉，暫停時停在原角度 */
+.player-record {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+.player-disc {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  /* 反光 + 細密溝槽 */
+  background:
+    conic-gradient(from 20deg, transparent 0 30deg, rgba(255, 255, 255, 0.16) 50deg, transparent 70deg 210deg, rgba(255, 255, 255, 0.16) 230deg, transparent 250deg),
+    repeating-radial-gradient(circle, #2b2522 0 1.2px, #3b332f 1.2px 2.4px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: vinylSpin 3.6s linear infinite;
+  animation-play-state: paused;
+}
+
+/* 中央圓標與軸孔 */
+.player-disc::after {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #2b2522 0 1.5px, var(--rose-accent) 2px);
+  border: 1.5px solid #f3ece4;
+}
+
+/* 唱臂：暫停時抬離唱片，播放時落到溝槽上 */
+.player-arm {
+  position: absolute;
+  top: -5px;
+  right: -3px;
+  width: 2px;
+  height: 21px;
+  background: #a89f96;
+  border-radius: 1px;
+  transform-origin: 50% 2px;
+  transform: rotate(-8deg);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.player-arm::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8c8075;
+}
+
+.player-arm::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: -1.5px;
+  width: 5px;
+  height: 6px;
+  border-radius: 1px;
+  background: #6e6259;
+}
+
+.music-player-bar.playing .player-disc {
+  animation-play-state: running;
+}
+
+.music-player-bar.playing .player-arm {
+  transform: rotate(24deg);
+}
+
+.song-title {
+  font-size: 12px;
+  color: #6e6259;
+  letter-spacing: 1px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-btn {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--wine-accent);
+  color: #ffffff;
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.player-btn:hover {
+  background: #9c4f43;
+  transform: scale(1.08);
+}
+
+@keyframes vinylSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-disc { animation: none; }
+}
+
+@media (max-width: 767px) {
+  .music-player-bar {
+    left: 14px;
+    bottom: 18px;
+    padding: 6px 12px 6px 6px;
+    gap: 8px;
+  }
+}
