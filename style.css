@@ -36,71 +36,66 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   align-items: center;
   overflow: hidden;
   background-color: #faf8f5;
 }
 
-/* 背景圖容器與漸層 */
+/* 背景圖容器與漸層：照片填滿文字區以上的剩餘高度，文字區永遠接在照片下方 */
 .hero-image-container {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
+  flex: 1 1 auto;
   width: 100%;
-  height: 68%; /* 手機版照片佔 68%，下方留白給父母資訊 */
-  z-index: 1;
-  overflow: visible;
+  min-height: 52vh;
 }
 
 .hero-bg-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center 36%;
 }
 
-/* 柔和羽化漸層融化下緣 */
+/* 柔和羽化漸層融化照片下緣 */
 .hero-gradient-fade {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to bottom,
     rgba(250, 248, 245, 0) 0%,
-    rgba(250, 248, 245, 0) 45%,
-    rgba(250, 248, 245, 0.25) 60%,
-    rgba(250, 248, 245, 0.65) 75%,
-    rgba(250, 248, 245, 0.95) 92%,
-    rgba(250, 248, 245, 1) 100%
+    rgba(250, 248, 245, 0) 76%,
+    rgba(250, 248, 245, 0.45) 90%,
+    rgba(250, 248, 245, 1) 97%
   );
   pointer-events: none;
-  z-index: 2;
 }
 
 .hero-content {
   position: relative;
   z-index: 3;
   text-align: center;
-  padding: 0 20px 30px;
+  padding: 26px 20px 30px; /* 上方留白：新郎新娘與照片保持距離 */
   width: 100%;
   max-width: 650px;
   margin-bottom: 0;
 }
 
-/* 手機版英文小標 */
-.hero-content .subtitle {
+/* 手機版英文小標：固定在照片下緣內 */
+.hero-image-container .subtitle {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 34px;
   font-family: var(--font-en-serif);
   font-size: 12px;
   letter-spacing: 3.5px;
   color: #4a3e35;
-  margin-top: -30px;
-  margin-bottom: 18px;
   text-shadow: 
     0 0 8px rgba(255, 255, 255, 0.95),
     0 1px 3px rgba(255, 255, 255, 0.9),
     0 0 16px rgba(255, 255, 255, 0.8);
-  position: relative;
-  z-index: 5;
 }
 
 /* 新郎新娘姓名 */
@@ -222,13 +217,12 @@ body {
 @media (min-width: 768px) {
   .hero {
     min-height: 100vh;
-    justify-content: flex-end;
-    padding-bottom: 30px;
+    padding-bottom: 24px;
     background-color: #faf8f5;
   }
 
   .hero-image-container {
-    height: 76%;
+    min-height: 58vh;
   }
 
   .hero-bg-img {
@@ -239,29 +233,27 @@ body {
     background: linear-gradient(
       to bottom,
       rgba(250, 248, 245, 0) 0%,
-      rgba(250, 248, 245, 0) 55%,
-      rgba(250, 248, 245, 0.3) 72%,
-      rgba(250, 248, 245, 0.75) 86%,
-      rgba(250, 248, 245, 0.98) 96%,
-      rgba(250, 248, 245, 1) 100%
+      rgba(250, 248, 245, 0) 80%,
+      rgba(250, 248, 245, 0.45) 92%,
+      rgba(250, 248, 245, 1) 98%
     );
   }
 
   .hero-content {
     max-width: 780px;
-    padding: 0 20px 20px;
+    padding: 48px 20px 20px;
   }
 
-  .hero-content .subtitle {
+  .hero-image-container .subtitle {
+    bottom: 48px;
     font-size: 14px;
     letter-spacing: 5px;
     color: #5c5044;
-    margin-bottom: 14px;
   }
 
   .hero-content .names {
     gap: 24px;
-    margin-bottom: 45px;
+    margin-bottom: 34px;
     text-shadow: 
       0 0 12px rgba(255, 255, 255, 1),
       0 1px 5px rgba(255, 255, 255, 0.95),
