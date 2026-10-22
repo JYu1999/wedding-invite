@@ -21,6 +21,10 @@ export function initIntro({ onOpen, onEnter } = {}) {
   const portal = document.getElementById('letterPortal');
   if (!overlay || !envelope || !portal) return;
 
+  // 每次都從首頁最上面開始：關掉瀏覽器「重新整理後回到上次捲動位置」的行為
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  window.scrollTo(0, 0);
+
   let stage = 'idle';
 
   const finish = () => {
@@ -30,6 +34,7 @@ export function initIntro({ onOpen, onEnter } = {}) {
 
   // 鏡頭以背面圓窗為中心指數放大，同時在遮罩上挖洞，洞裡就是首頁
   const zoomThrough = () => {
+    window.scrollTo(0, 0);
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       finish();
       return;
