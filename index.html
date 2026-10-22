@@ -1,86 +1,332 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Wedding Day | 電子喜帖</title>
-    <!-- Google Fonts 質感襯線字體 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Serif+TC:wght@300;400;600&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我們結婚了 | 詹傑宇 & 潘昱綺</title>
+  
+  <!-- 字型載入 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cormorant+Garamond:wght@400;500;600&family=Noto+Serif+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- 引入你的 CSS 檔（若寫在同一個檔案內可直接用 <style> 包住） -->
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-    <!-- 主視覺封面 -->
-    <header class="hero">
-<div class="hero-overlay"></div> <!-- 新增半透明遮罩，確保文字清晰 -->
+  <!-- ==================== 1. 3D 拆信封開場遮罩 ==================== -->
+  <div id="intro-overlay">
+    <div class="envelope-wrapper">
+      <p class="envelope-hint">點擊拆開邀請函<br><span>OPEN INVITATION</span></p>
+      
+      <div class="envelope-container" id="envelopeBox">
+        <!-- 信封底座 -->
+        <div class="envelope-back"></div>
+
+        <!-- 內部信件卡片 -->
+        <div class="envelope-letter" id="envelopeLetter">
+          <div class="letter-inner">
+            <div class="letter-en-title">Wedding Invitation</div>
+            <div class="letter-names">詹傑宇 & 潘昱綺</div>
+            <div class="letter-divider"></div>
+            <p class="letter-text">誠摯邀請您見證我們的幸福時刻</p>
+            <p class="letter-subtext">2026 . 12 . 20</p>
+          </div>
+        </div>
+
+        <!-- 信封袋身 -->
+        <div class="envelope-pocket"></div>
+
+        <!-- 信封上蓋 -->
+        <div class="envelope-flap">
+          <span class="seal-icon">✦</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 2. 首頁主視覺 (Hero Section) ==================== -->
+  <header class="hero">
+    <!-- 主視覺照片背景（替換為婚紗首頁大圖） -->
+    <div class="hero-image-container">
+      <img src="photo1.jpg" alt="詹傑宇與潘昱綺" class="hero-bg-img">
+    </div>
+
+    <!-- 柔和羽化漸層 -->
+    <div class="hero-gradient-fade"></div>
+
+    <!-- 內文文字區 -->
     <div class="hero-content">
       <p class="subtitle">WE ARE GETTING MARRIED</p>
-      <!-- 改為你們的姓名，例如：Yu-Chi & Partner -->
-      <h2 class="names">
-  <span class="person"><span class="role">新郎  </span> 詹傑宇</span>
-  <span class="person"><span class="role">新娘  </span> 潘昱綺</span>
-</h2>
-      <p class="date-hero">2026 . 12 . 20</p>
+      
+      <!-- 主角姓名：稱謂在名字上方 -->
+      <div class="names">
+        <div class="person">
+          <span class="role">新郎</span>
+          <span class="name">詹傑宇</span>
         </div>
-    </header>
-
-    <!-- 倒數計時區 -->
-    <section class="section countdown-section">
-        <div class="countdown-container">
-            <div class="countdown-box"><span id="days">00</span><span class="label">Days</span></div>
-            <div class="countdown-box"><span id="hours">00</span><span class="label">Hours</span></div>
-            <div class="countdown-box"><span id="mins">00</span><span class="label">Mins</span></div>
-            <div class="countdown-box"><span id="secs">00</span><span class="label">Secs</span></div>
+        <span class="person-and">&</span>
+        <div class="person">
+          <span class="role">新娘</span>
+          <span class="name">潘昱綺</span>
         </div>
-    </section>
+      </div>
 
-    <!-- 邀請信與婚禮細節 -->
-    <section class="section details-section">
-        <div class="container">
-            <p class="letter-intro">
-                誠摯邀請您參與我們的婚禮<br>
-                與我們一同分享這份喜悅與溫暖時光
-            </p>
-
-            <div class="card-grid">
-                <div class="detail-card">
-                    <h3>宴席時間</h3>
-                    <p>2026 年 12 月 20 日 (週日)</p>
-                    <p class="highlight">11:30 迎賓接待 / 12:00 準時入席</p>
-                </div>
-
-                <div class="detail-card">
-                    <h3>宴席地點</h3>
-                    <p>台南宴會會館 / 廳別名稱</p>
-                    <p>台南市詳細地址</p>
-                    <a class="text-link" href="https://maps.google.com" target="_blank" rel="noopener">開啟 Google 地圖導航
-                        &rarr;</a>
-                </div>
-            </div>
+      <!-- 雙方家長資訊：女方爸爸下方並列括號舊名 -->
+      <div class="parents-container">
+        <!-- 男方家長 -->
+        <div class="parents-col">
+          <span class="parent-badge">男方家長</span>
+          <div class="parent-names">
+            <span>詹俊哲</span>
+            <span>溫文娟</span>
+          </div>
         </div>
-    </section>
 
-    <!-- 出席回函 -->
-    <section class="section rsvp-section">
-        <div class="container">
-            <h2>出席回函</h2>
-            <p>為了為您準備合適的席位，請於指定日期前協助填寫回函</p>
-            <!-- 替換為你的 Google 表單連結 -->
-            <a href="https://forms.google.com" target="_blank" rel="noopener" class="btn-primary">填寫出席問卷</a>
+        <!-- 女方家長 -->
+        <div class="parents-col">
+          <span class="parent-badge">女方家長</span>
+          <div class="parent-names">
+            <span class="parent-father">
+              潘琮荃
+              <small class="parent-alias">（潘金春）</small>
+            </span>
+            <span>簡淑君</span>
+          </div>
         </div>
-    </section>
+      </div>
 
-    <footer>
-        <p>&copy; 2026 Groom & Bride. Designed with Love.</p>
-    </footer>
+      <!-- 婚禮日期 -->
+      <div class="date-hero">2026 . 12 . 20</div>
+    </div>
+  </header>
 
-    <script src="script.js"></script>
+  <!-- ==================== 3. 倒數計時區 ==================== -->
+  <section class="section countdown-section reveal">
+    <div class="container">
+      <div class="countdown-container">
+        <div class="countdown-box">
+          <span id="days">00</span>
+          <span class="label">Days</span>
+        </div>
+        <div class="countdown-box">
+          <span id="hours">00</span>
+          <span class="label">Hours</span>
+        </div>
+        <div class="countdown-box">
+          <span id="minutes">00</span>
+          <span class="label">Mins</span>
+        </div>
+        <div class="countdown-box">
+          <span id="seconds">00</span>
+          <span class="label">Secs</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 4. 婚禮邀請細節 ==================== -->
+  <section class="section reveal">
+    <div class="container">
+      <p class="letter-intro">
+        相遇、相知、相許<br>
+        在這個溫馨特別的日子裡<br>
+        真摯期待您的光臨與祝福
+      </p>
+
+      <div class="card-grid">
+        <div class="detail-card">
+          <h3>婚禮宴席</h3>
+          <p class="highlight">2026 年 12 月 20 日 星期日</p>
+          <p>12:00 入席 ｜ 12:30 準時開席</p>
+          <div class="calendar-btn-group">
+            <a href="#" class="btn-cal" id="googleCalBtn" target="_blank">加入 Google 行事曆</a>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <h3>宴會場地</h3>
+          <p class="highlight">台北晶華酒店 3F 宴會廳</p>
+          <p>台北市中山區中山北路二段 39 巷 3 號</p>
+          <a href="https://maps.google.com" target="_blank" class="text-link">開啟 Google 地圖導航 ➔</a>
+        </div>
+      </div>
+
+      <a href="#rsvp" class="btn-primary">填寫出席回函</a>
+    </div>
+  </section>
+
+  <!-- ==================== 5. 相片藝廊 (手機 2 欄並排) ==================== -->
+  <section class="section reveal">
+    <div class="container">
+      <p class="subtitle" style="font-family: var(--font-en-serif); letter-spacing: 4px; color: #8c8075;">GALLERY</p>
+      <h2 style="font-size: 22px; color: #423b35; margin-bottom: 24px; font-weight: 500;">美好剪影</h2>
+      
+      <div class="gallery-grid">
+        <div class="gallery-item">
+          <img src="./gallery1.jpg" alt="婚紗照 1" class="gallery-img">
+        </div>
+        <div class="gallery-item">
+          <img src="./gallery2.jpg" alt="婚紗照 2" class="gallery-img">
+        </div>
+        <div class="gallery-item">
+          <img src="./gallery3.jpg" alt="婚紗照 3" class="gallery-img">
+        </div>
+        <div class="gallery-item">
+          <img src="./gallery4.jpg" alt="婚紗照 4" class="gallery-img">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 相片燈箱放大容器 -->
+  <div id="lightbox">
+    <img id="lightbox-img" src="" alt="放大照片">
+  </div>
+
+  <!-- ==================== 6. 頁尾 ==================== -->
+  <footer>
+    <p>JAY & YUCHI © 2026</p>
+    <p style="margin-top: 4px; opacity: 0.7;">WITH LOVE AND GRATITUDE</p>
+  </footer>
+
+  <!-- ==================== 7. 自備音樂與底部控制條 ==================== -->
+  <!-- 音樂標籤：替換成您放入 VSCode 的音樂檔路徑 -->
+  <audio id="bg-music" loop preload="auto">
+    <source src="./wedding.mp3" type="audio/mpeg">
+    您的瀏覽器不支援音樂播放。
+  </audio>
+
+  <!-- 懸浮音樂播放條 -->
+  <div class="music-player-bar" id="musicPlayer">
+    <div class="player-disc" id="playerDisc">♫</div>
+    <div class="player-info">
+      <!-- 替換歌曲名稱與歌手名 -->
+      <p class="song-title">Perfect</p>
+      <p class="song-artist">Ed Sheeran</p>
+    </div>
+    <button class="player-btn" id="playBtn" type="button" aria-label="播放或暫停音樂">
+      <span id="playIcon">▶</span>
+    </button>
+  </div>
+
+  <!-- 飄落花瓣畫布 -->
+  <canvas id="petal-canvas"></canvas>
+
+  <!-- ==================== JavaScript 功能腳本 ==================== -->
+ <script>
+    // 1. 信封點擊拆封開場與自動播放背景音樂
+    const introOverlay = document.getElementById('intro-overlay');
+    const envelopeBox = document.getElementById('envelopeBox');
+    const envelopeLetter = document.getElementById('envelopeLetter');
+    const bgMusic = document.getElementById('bg-music');
+    const playBtn = document.getElementById('playBtn');
+    const playIcon = document.getElementById('playIcon');
+    const playerDisc = document.getElementById('playerDisc');
+
+    introOverlay.addEventListener('click', () => {
+      envelopeBox.classList.add('open');
+      
+      // 自動嘗試播放音樂
+      bgMusic.play().then(() => {
+        playerDisc.classList.add('playing');
+        playIcon.textContent = '❚❚';
+      }).catch(err => {
+        console.log('音樂自動播放受限，可透過播放按鈕手動播放', err);
+      });
+
+      setTimeout(() => {
+        envelopeLetter.classList.add('fade-away');
+      }, 1200);
+
+      setTimeout(() => {
+        introOverlay.classList.add('fade-out');
+      }, 1900);
+    });
+
+    // 2. 音樂條手動播放 / 暫停按鈕
+    playBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (bgMusic.paused) {
+        bgMusic.play();
+        playerDisc.classList.add('playing');
+        playIcon.textContent = '❚❚';
+      } else {
+        bgMusic.pause();
+        playerDisc.classList.remove('playing');
+        playIcon.textContent = '▶';
+      }
+    });
+
+    // 3. 婚禮倒數計時器
+    function updateCountdown() {
+      const weddingDate = new Date('2026-12-20T12:00:00').getTime();
+      const now = new Date().getTime();
+      const diff = weddingDate - now;
+
+      if (diff > 0) {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        document.getElementById('days').textContent = String(days).padStart(2, '0');
+        document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+        document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+        document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+      }
+    }
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+
+    // 4. 相片燈箱點擊放大
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const galleryImgs = document.querySelectorAll('.gallery-img');
+
+    galleryImgs.forEach(img => {
+      img.addEventListener('click', () => {
+        lightboxImg.src = img.src;
+        lightbox.style.display = 'flex';
+      });
+    });
+
+    lightbox.addEventListener('click', () => {
+      lightbox.style.display = 'none';
+    });
+
+    // 5. 滾動顯現動畫 (Scroll Reveal)
+    const revealElements = document.querySelectorAll('.reveal');
+    const revealOnScroll = () => {
+      const windowHeight = window.innerHeight;
+      revealElements.forEach(el => {
+        const elementTop = el.getBoundingClientRect().top;
+        if (elementTop < windowHeight - 60) {
+          el.classList.add('visible');
+        }
+      });
+    };
+    window.addEventListener('scroll', revealOnScroll);
+    revealOnScroll();
+
+    // 6. 滑動監聽：滑出首頁大圖時才顯現直立音樂播放器
+    const musicPlayer = document.getElementById('musicPlayer');
+    const heroSection = document.querySelector('.hero');
+
+    const handlePlayerVisibility = () => {
+      if (!heroSection || !musicPlayer) return;
+      const heroBottom = heroSection.getBoundingClientRect().bottom;
+
+      if (heroBottom < 200) {
+        musicPlayer.classList.add('show');
+      } else {
+        musicPlayer.classList.remove('show');
+      }
+    };
+
+    window.addEventListener('scroll', handlePlayerVisibility);
+    handlePlayerVisibility();
+  </script>
 </body>
-
 </html>
