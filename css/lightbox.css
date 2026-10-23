@@ -1,0 +1,335 @@
+/* ==================== 全螢幕看照片的燈箱：三張照片左右排開，跟著手指滑動 ==================== */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 10005;   /* 疊在扭蛋機、扭蛋圖鑑之上：圖鑑裡的照片也是在這裡放大 */
+  display: none;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.92);
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.lightbox.open {
+  display: block;
+  animation: lightboxIn 0.28s ease both;
+}
+
+.lightbox.closing {
+  animation: lightboxOut 0.24s ease forwards;
+}
+
+@keyframes lightboxIn {
+  from { opacity: 0; }
+}
+
+@keyframes lightboxOut {
+  to { opacity: 0; }
+}
+
+.lightbox.open .lightbox-track {
+  animation: lightboxZoomIn 0.34s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+@keyframes lightboxZoomIn {
+  from { scale: 0.94; }
+}
+
+.lightbox-track {
+  position: absolute;
+  inset: 0;
+}
+
+.lightbox-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform, opacity;
+}
+
+/* 放開手指後滑到定位或彈回，與 lightbox.js 的 SETTLE_MS 一致 */
+.lightbox.settling .lightbox-slide {
+  transition: transform 0.34s cubic-bezier(0.22, 0.8, 0.25, 1), opacity 0.34s ease;
+}
+
+.lightbox.settling {
+  transition: background-color 0.34s ease;
+}
+
+.lightbox-frame {
+  position: relative;
+  line-height: 0;
+}
+
+.lightbox-frame img {
+  display: block;
+  max-width: 90vw;
+  max-height: 82vh;
+  max-height: 82dvh;
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  -webkit-user-drag: none;
+  transition: opacity 0.2s ease;
+}
+
+.lightbox-frame img.loading {
+  opacity: 0;
+}
+
+/* 預設只能欣賞：不能選取、長按也不跳出儲存選單；扭蛋圖鑑裡可以下載的照片才開放長按儲存 */
+.lightbox--protect .lightbox-frame img {
+  -webkit-touch-callout: none;
+  pointer-events: none;
+}
+
+.lightbox--plain .watermark {
+  display: none;
+}
+
+/* 扭蛋圖鑑的照片下方有名稱與說明，照片留短一點不要被字壓到 */
+.lightbox--plain .lightbox-frame img {
+  max-height: 72vh;
+  max-height: 72dvh;
+}
+
+.lightbox .watermark {
+  right: 14px;
+  bottom: 12px;
+  color: rgba(255, 255, 255, 0.72);
+  text-shadow:
+    0 1px 3px rgba(30, 22, 18, 0.55),
+    0 0 12px rgba(30, 22, 18, 0.35);
+}
+
+.lightbox .watermark-names {
+  font-size: 11px;
+  letter-spacing: 3px;
+}
+
+.lightbox .watermark-script {
+  font-size: 22px;
+}
+
+/* 燈箱按鈕：右上角關閉、左右切換；拖曳時淡出，不擋著照片 */
+.lightbox-btn,
+.lightbox-info {
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.lightbox.dragging .lightbox-btn,
+.lightbox.dragging .lightbox-info {
+  opacity: 0;
+}
+
+.lightbox-btn {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lightbox-btn:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.lightbox-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lightbox-close {
+  top: max(16px, env(safe-area-inset-top));
+  right: 16px;
+}
+
+.lightbox-nav {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lightbox-prev {
+  left: 16px;
+}
+
+.lightbox-next {
+  right: 16px;
+}
+
+.lightbox--single .lightbox-nav {
+  display: none;
+}
+
+.lightbox-info {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 1;
+  padding: 0 20px;
+  pointer-events: none;
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.lightbox-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.5;
+}
+
+.lightbox-caption:empty {
+  display: none;
+}
+
+.lightbox-caption-name {
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: #fbf4e8;
+}
+
+.lightbox-caption-note {
+  font-size: 12px;
+  color: rgba(251, 244, 232, 0.6);
+}
+
+.lightbox-counter {
+  margin-top: 6px;
+  font-family: var(--font-en-serif);
+  font-size: 13px;
+  letter-spacing: 3px;
+  line-height: 1;
+}
+
+/* ---------- 第一次打開的操作提示：手指從右往左滑、留下一道光痕 ---------- */
+.lightbox-coach {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.25) 70%);
+  color: #ffffff;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;   /* 不擋手勢：使用者直接照著滑就好 */
+  transition: opacity 0.35s ease, visibility 0s linear 0.35s;
+}
+
+.lightbox-coach.show {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.35s ease;
+}
+
+.coach-swipe {
+  position: relative;
+  width: 160px;
+  height: 64px;
+}
+
+.coach-hand {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  font-size: 46px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+  animation: coachSwipe 1.8s cubic-bezier(0.45, 0, 0.3, 1) infinite;
+}
+
+.coach-trail {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 6px;
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(to left, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85));
+  transform-origin: right center;
+  animation: coachTrail 1.8s cubic-bezier(0.45, 0, 0.3, 1) infinite;
+}
+
+@keyframes coachSwipe {
+  0% { translate: 10px 6px; opacity: 0; rotate: 8deg; }
+  15% { translate: 10px 0; opacity: 1; rotate: 0deg; }
+  60% { translate: -100px 0; opacity: 1; rotate: -10deg; }
+  80%, 100% { translate: -100px 6px; opacity: 0; rotate: -10deg; }
+}
+
+@keyframes coachTrail {
+  0%, 15% { scale: 0 1; opacity: 0; }
+  60% { scale: 1 1; opacity: 1; }
+  80%, 100% { scale: 1 1; opacity: 0; }
+}
+
+.coach-text {
+  font-size: 16px;
+  letter-spacing: 0.12em;
+  line-height: 1.8;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+.coach-text span {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.coach-text[hidden] {
+  display: none;
+}
+
+/* 手機：照片幾乎佔滿寬度，左右按鈕縮小、半透明壓在照片兩側 */
+@media (max-width: 650px) {
+  .lightbox-frame img {
+    max-width: 94vw;
+  }
+
+  .lightbox-nav {
+    width: 36px;
+    height: 36px;
+    background: rgba(0, 0, 0, 0.28);
+  }
+
+  .lightbox-prev {
+    left: 8px;
+  }
+
+  .lightbox-next {
+    right: 8px;
+  }
+
+  .lightbox-close {
+    top: max(12px, env(safe-area-inset-top));
+    right: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coach-hand,
+  .coach-trail,
+  .lightbox.open .lightbox-track {
+    animation: none;
+  }
+}

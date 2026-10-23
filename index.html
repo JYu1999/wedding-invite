@@ -22,8 +22,10 @@
   <link rel="stylesheet" href="css/hero.css">
   <link rel="stylesheet" href="css/details.css">
   <link rel="stylesheet" href="css/gallery.css">
+  <link rel="stylesheet" href="css/lightbox.css">
   <link rel="stylesheet" href="css/music-player.css">
   <link rel="stylesheet" href="css/gacha.css">
+  <link rel="stylesheet" href="css/album.css">
 
   <script type="module" src="js/main.js"></script>
 </head>
@@ -255,21 +257,32 @@
     </div>
   </section>
 
-  <!-- 相片燈箱放大容器 -->
-  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="婚紗照瀏覽">
+  <!-- 全螢幕看照片的燈箱：婚紗剪影與扭蛋圖鑑共用，三張輪替的照片由 js/lightbox.js 產生 -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="照片瀏覽">
+    <div class="lightbox-track" id="lightboxTrack"></div>
     <button class="lightbox-btn lightbox-close" id="lightboxClose" type="button" aria-label="關閉">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
     <button class="lightbox-btn lightbox-nav lightbox-prev" id="lightboxPrev" type="button" aria-label="上一張">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
     </button>
-    <div class="lightbox-frame">
-      <img id="lightboxImg" src="" alt="放大照片">
-    </div>
     <button class="lightbox-btn lightbox-nav lightbox-next" id="lightboxNext" type="button" aria-label="下一張">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
     </button>
-    <p class="lightbox-counter" id="lightboxCounter"></p>
+    <div class="lightbox-info">
+      <p class="lightbox-caption" id="lightboxCaption"></p>
+      <p class="lightbox-counter" id="lightboxCounter"></p>
+    </div>
+
+    <!-- 第一次打開時的操作提示：手指左右滑的示範動畫 -->
+    <div class="lightbox-coach" id="lightboxCoach" aria-hidden="true">
+      <div class="coach-swipe">
+        <span class="coach-trail"></span>
+        <span class="coach-hand">👆</span>
+      </div>
+      <p class="coach-text" data-touch>左右滑動，看下一張<br><span>上下滑動或點 ✕ 關閉</span></p>
+      <p class="coach-text" data-mouse>拖曳照片或按 ← → 看下一張<br><span>按 Esc 或點旁邊空白處關閉</span></p>
+    </div>
   </div>
 
   <!-- 聖誕扭蛋機：點月曆上的 🎄 開啟，照片清單在 js/config.js -->
@@ -308,10 +321,18 @@
           </span>
         </button>
 
-        <!-- 刮刮樂照片卡 -->
+        <!-- 刮刮樂照片卡：刮完後左上角標示是新收集到的還是已經有了 -->
         <div class="gacha-card" id="gachaCard" hidden>
           <img id="gachaPhoto" alt="">
           <canvas class="gacha-scratch" id="gachaScratch" aria-label="刮開銀漆看照片"></canvas>
+          <span class="gacha-badge" id="gachaBadge" aria-hidden="true"></span>
+        </div>
+
+        <!-- 操作提示：手指示範要點哪裡、怎麼刮，位置由 js 對準目標 -->
+        <div class="gacha-coach" id="gachaCoach" aria-hidden="true">
+          <span class="coach-ripple"></span>
+          <span class="coach-hand">👆</span>
+          <span class="coach-label" id="gachaCoachLabel"></span>
         </div>
       </div>
 
@@ -322,6 +343,31 @@
       </div>
     </div>
   </div>
+
+  <!-- 扭蛋圖鑑：扭到的照片都收在這裡，格子由 js/gacha/collection.js 依照片清單產生 -->
+  <div class="album" id="album" role="dialog" aria-modal="true" aria-labelledby="albumTitle" hidden>
+    <div class="album-sheet">
+      <button class="album-close" id="albumClose" type="button" aria-label="關閉扭蛋圖鑑">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <p class="album-eyebrow">MY COLLECTION</p>
+      <h2 class="album-title" id="albumTitle">扭蛋圖鑑</h2>
+      <p class="album-progress"><span id="albumCount">0</span> / <span id="albumTotal">0</span></p>
+      <div class="album-bar" aria-hidden="true"><span id="albumBar"></span></div>
+      <p class="album-note" id="albumNote"></p>
+      <div class="album-grid" id="albumGrid"></div>
+      <div class="album-actions">
+        <button class="gacha-btn gacha-btn--primary" id="albumGo" type="button">去扭蛋</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 扭蛋圖鑑的浮動泡泡：可以拖曳，點開圖鑑 -->
+  <button class="album-bubble" id="albumBubble" type="button" aria-label="開啟扭蛋圖鑑">
+    <span class="bubble-icon" aria-hidden="true"></span>
+    <span class="bubble-count" id="albumBubbleCount" aria-hidden="true">0/0</span>
+    <span class="bubble-toast" id="albumBubbleToast" aria-live="polite"></span>
+  </button>
 
   <!-- ==================== 6. 頁尾 ==================== -->
   <footer>

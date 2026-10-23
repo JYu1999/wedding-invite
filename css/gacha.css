@@ -584,7 +584,150 @@
   scale: 1;
 }
 
+/* 照片飛進扭蛋圖鑑時，原本的卡片先藏起來，由飛出去的那張接手 */
+.gacha-card.stashed {
+  visibility: hidden;
+}
+
+/* 刮完後左上角的標籤：第一次扭到是金色 NEW!，已經收藏過的是淡淡的「已收藏」 */
+.gacha-badge {
+  position: absolute;
+  left: -10px;
+  top: -12px;
+  z-index: 2;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold) 60%, #c98f2e);
+  color: #4a2e10;
+  font-family: var(--font-en-serif);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1.3;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  rotate: -8deg;
+  opacity: 0;
+  scale: 0.4;
+  pointer-events: none;
+}
+
+.gacha-badge.owned {
+  background: rgba(251, 244, 232, 0.92);
+  color: #6b5a48;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+.gacha[data-state="won"] .gacha-badge,
+.gacha[data-state="collecting"] .gacha-badge {
+  opacity: 1;
+  scale: 1;
+  transition: opacity 0.3s ease 0.4s, scale 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.5) 0.4s;
+}
+
+/* 等著轉蛋時整台機器都可以點 */
+.gacha[data-state="machine"] .gacha-machine {
+  cursor: pointer;
+}
+
+/* ---------- 操作提示：手指對準目標，點一下示範或來回刮的示範 ---------- */
+.gacha-coach {
+  position: absolute;
+  z-index: 5;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gacha-coach.show {
+  opacity: 1;
+}
+
+.coach-ripple {
+  position: absolute;
+  left: -22px;
+  top: -22px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.18);
+  opacity: 0;
+}
+
+.gacha-coach .coach-hand {
+  position: absolute;
+  left: -15px;
+  top: 2px;
+  font-size: 40px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+}
+
+.coach-label {
+  position: absolute;
+  left: 0;
+  top: 58px;
+  translate: -50% 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(251, 244, 232, 0.95);
+  color: #5a2c25;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.gacha-coach.show[data-mode="tap"] .coach-hand {
+  animation: coachTap 1.4s ease-in-out infinite;
+}
+
+.gacha-coach.show[data-mode="tap"] .coach-ripple {
+  animation: coachRipple 1.4s ease-out infinite;
+}
+
+@keyframes coachTap {
+  0%, 100% { translate: 4px 14px; }
+  40% { translate: 0 0; scale: 0.92; }
+  55% { translate: 0 0; scale: 0.92; }
+}
+
+@keyframes coachRipple {
+  0%, 38% { opacity: 0; scale: 0.4; }
+  45% { opacity: 1; scale: 0.6; }
+  100% { opacity: 0; scale: 1.6; }
+}
+
+/* 刮刮樂：手指在卡片上來回畫 Z 字，標籤停在卡片下緣 */
+.gacha-coach.show[data-mode="scratch"] .coach-hand,
+.gacha-coach.show[data-mode="scratch"] .coach-ripple {
+  animation: coachScratch 2.4s ease-in-out infinite;
+}
+
+.gacha-coach.show[data-mode="scratch"] .coach-ripple {
+  opacity: 0.7;
+  scale: 0.7;
+}
+
+.gacha-coach[data-mode="scratch"] .coach-label {
+  top: calc(var(--h) * 0.36);
+}
+
+@keyframes coachScratch {
+  0%, 100% { translate: calc(var(--w) * -0.28) calc(var(--h) * -0.22); }
+  25% { translate: calc(var(--w) * 0.28) calc(var(--h) * -0.12); }
+  50% { translate: calc(var(--w) * -0.24) calc(var(--h) * 0.02); }
+  75% { translate: calc(var(--w) * 0.26) calc(var(--h) * 0.14); }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .gacha-coach .coach-hand,
+  .gacha-coach .coach-ripple,
   .gacha-rays,
   .gacha[data-state="machine"] .gm-knob::before,
   .gacha[data-state="machine"] .gm-knob,

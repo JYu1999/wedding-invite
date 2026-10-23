@@ -1,9 +1,16 @@
-// 聖誕扭蛋機：點月曆上的 🎄 開啟 → 按扭蛋機的旋鈕掉出一顆扭蛋 → 點擊（手機也可以搖一搖）打開
+// 聖誕扭蛋機：點月曆上的 🎄 開啟 → 按扭蛋機（旋鈕或機身都可以）掉出一顆扭蛋 → 點擊（手機也可以搖一搖）打開
 // → 用滑鼠左鍵或手指刮掉照片上的銀漆 → 差不多刮乾淨就恭喜獲得照片，可以儲存、再扭一次或退出
-// 每次從照片清單完全隨機挑一張，可能重複；隨時可以按右上角 ✕、Esc 結束
+// 扭到的照片收進扭蛋圖鑑（collection.js），按「再扭一次／退出」前會先看到照片飛進圖鑑的泡泡
+// 每次隨機挑一張，可能重複；還沒收集到的照片比較容易抽到（config.js 的 LOTTERY_NEW_WEIGHT）
+// 手機上每個步驟都有對應的震動；隨時可以按右上角 ✕、Esc 結束
+// 操作提示：第一次玩時直接用手指動畫示範要點哪裡、怎麼刮；做過一次之後，只有停著不動幾秒才再提示
 
 import { initScratch } from './scratch.js';
 import { spinSound, popSound, scratchSound, fanfare, openBurst, celebrate } from './effects.js';
+import { haptic, HAPTIC } from '../fx/haptics.js';
+import { IS_IOS, isTouch } from '../device.js';
+import { seen, markSeen } from '../storage.js';
+import { lockScroll, unlockScroll } from '../scroll-lock.js';
 
 const SPIN_MS = 1100;        // 轉把手、機器晃動，與 CSS .spinning 的動畫一致
 const DROP_MS = 1500;        // 扭蛋從出口掉出、彈一下、移到畫面中央
@@ -12,6 +19,11 @@ const DROP_BOUNCE = 0.36;
 const OPEN_MS = 700;         // 扭蛋打開到出現照片卡，與 CSS .opening 的動畫一致
 const CLOSE_MS = 350;        // 與 CSS .gacha 淡出的 transition 一致
 const CARD_FILL = 0.94;      // 照片卡最多佔中間區域的比例
+const SCRATCH_HAPTIC_MS = 70; // 刮銀漆時震動的間隔
+
+// 操作提示：第一次玩時稍等一下就出現；做過那個動作之後，要停著不動這麼久才再提示
+const COACH_FIRST_MS = 700;
+const COACH_IDLE_MS = 4000;
 
 // 搖手機：連續幾次夠大的加速度變化，而且間隔夠短，才算搖一搖
 const SHAKE_DELTA = 18;
@@ -28,12 +40,8 @@ const DOME_BALLS = [
   [3.5, 2.2], [5.5, 2.3],
 ];
 
-const IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent)
-  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
 const pick = (list) => list[Math.floor(Math.random() * list.length)];
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const isTouch = () => window.matchMedia('(pointer: coarse)').matches;
 const centerOf = (el) => {
   const r = el.getBoundingClientRect();
   return { x: r.left + r.width / 2, y: r.top + r.height / 2, width: r.width, height: r.height };
@@ -102,7 +110,18 @@ function savePhoto(prize) {
   link.remove();
 }
 
-export function initGacha({ trigger, photos }) {
+// 依權重抽一張：還沒收集到的照片權重是 newWeight，收集過的是 1
+function pickPrize(photos, collection, newWeight) {
+  const weights = photos.map((p) => (collection?.has(p) ? 1 : newWeight));
+  let r = Math.random() * weights.reduce((sum, w) => sum + w, 0);
+  for (let i = 0; i < photos.length; i++) {
+    r -= weights[i];
+    if (r < 0) return photos[i];
+  }
+  return photos[photos.length - 1];
+}
+
+export function initGacha({ trigger, photos, collection, newWeight = 1 }) {
   const root = document.getElementById('gacha');
   if (!root || !trigger || !photos.length) return;
 
@@ -120,6 +139,9 @@ export function initGacha({ trigger, photos }) {
   const saveBtn = $('gachaSave');
   const againBtn = $('gachaAgain');
   const exitBtn = $('gachaExit');
+  const badge = $('gachaBadge');
+  const coach = $('gachaCoach');
+  const coachLabel = $('gachaCoachLabel');
 
   fillDome($('gachaDome'));
   // 「刮刮樂」字樣畫在畫布上，先載好中文字型，畫出來才不會是系統字
@@ -131,9 +153,46 @@ export function initGacha({ trigger, photos }) {
   let stopShake = null;
   let run = 0;   // 每次重來或關閉就加一，舊流程的非同步步驟看到不一致就停下
 
+  // 每個步驟要提示的地方：key 是「做過這個動作」的紀錄
+  const COACH = {
+    machine: { key: 'gacha-spin', target: () => knob, mode: 'tap', label: '點這裡轉一轉' },
+    dropped: { key: 'gacha-open', target: () => capsule, mode: 'tap', label: isTouch() ? '點一下或搖一搖' : '點一下打開' },
+    scratch: { key: 'gacha-scratch', target: () => card, mode: 'scratch', label: '來回刮開銀漆' },
+  };
+  let coachTimer = 0;
+
+  const hideCoach = () => {
+    clearTimeout(coachTimer);
+    coach.classList.remove('show');
+  };
+
+  // 手指提示放在目標中央（座標相對於中間區域）
+  const showCoach = (step) => {
+    const a = arena.getBoundingClientRect();
+    const t = step.target().getBoundingClientRect();
+    coach.style.left = `${t.left - a.left + t.width / 2}px`;
+    coach.style.top = `${t.top - a.top + t.height / 2}px`;
+    coach.style.setProperty('--w', `${t.width}px`);
+    coach.style.setProperty('--h', `${t.height}px`);
+    coach.dataset.mode = step.mode;
+    coachLabel.textContent = step.label;
+    coach.classList.add('show');
+  };
+
+  // 換到新步驟時重新計時；使用者有任何操作就重新計時（nudge）
+  const scheduleCoach = () => {
+    hideCoach();
+    const step = COACH[state];
+    if (!step || (state === 'scratch' && scratching)) return;
+    const current = run;
+    coachTimer = setTimeout(() => {
+      if (current === run && COACH[state] === step) showCoach(step);
+    }, seen(step.key) ? COACH_IDLE_MS : COACH_FIRST_MS);
+  };
+
   const render = () => {
     root.dataset.state = state;
-    const won = state === 'won';
+    const won = state === 'won' || state === 'collecting';
     eyebrow.textContent = won ? 'CONGRATULATIONS' : 'MERRY CHRISTMAS';
     if (won) {
       const name = document.createElement('span');
@@ -148,7 +207,7 @@ export function initGacha({ trigger, photos }) {
       title.textContent = state === 'scratch' ? '刮刮樂' : '聖誕扭蛋機';
     }
     hint.textContent = {
-      machine: '轉動扭蛋機的旋鈕，看看會掉出什麼',
+      machine: '點一下金色旋鈕，轉出一顆扭蛋',
       spinning: '轉呀轉⋯⋯',
       dropped: isTouch() ? '點一下扭蛋，或搖一搖手機打開它' : '點一下扭蛋打開它',
       opening: '打開中⋯⋯',
@@ -156,16 +215,20 @@ export function initGacha({ trigger, photos }) {
       won: prize?.downloadable
         ? (isTouch() ? '也可以長按照片直接儲存' : '')
         : '這張是珍藏版，只能在這裡欣賞喔',
+      collecting: prize?.isNew ? '收進扭蛋圖鑑囉！' : '這張已經收藏過囉',
     }[state] ?? '';
     knob.disabled = state !== 'machine';
-    [againBtn, exitBtn].forEach((btn) => { btn.hidden = !won; });
-    saveBtn.hidden = !won || !prize.downloadable;
+    [againBtn, exitBtn].forEach((btn) => { btn.hidden = state !== 'won'; });
+    saveBtn.hidden = state !== 'won' || !prize.downloadable;
     card.classList.toggle('view-only', !prize?.downloadable);
+    badge.textContent = prize?.isNew ? 'NEW!' : '已收藏';
+    badge.classList.toggle('owned', !prize?.isNew);
   };
 
   const setState = (next) => {
     state = next;
     render();
+    scheduleCoach();
   };
 
   const fitCard = () => {
@@ -182,12 +245,28 @@ export function initGacha({ trigger, photos }) {
   };
   new ResizeObserver(fitCard).observe(arena);
 
+  let scratching = false;
+  let lastScratchHaptic = 0;
   const scratch = initScratch($('gachaScratch'), {
-    onScratch: scratchSound,
+    onScratch: () => {
+      scratchSound();
+      if (!scratching) {
+        scratching = true;
+        markSeen(COACH.scratch.key);
+        hideCoach();
+      }
+      const now = performance.now();
+      if (now - lastScratchHaptic > SCRATCH_HAPTIC_MS) {
+        lastScratchHaptic = now;
+        haptic(HAPTIC.tick);
+      }
+    },
     onDone: () => {
       if (state !== 'scratch') return;
+      prize.isNew = collection ? collection.add(prize) : false;
       setState('won');
       fanfare();
+      haptic(HAPTIC.success);
       const c = centerOf(card);
       celebrate(root, c.x, c.y);
       (prize.downloadable ? saveBtn : againBtn).focus({ preventScroll: true });
@@ -203,7 +282,15 @@ export function initGacha({ trigger, photos }) {
     capsule.classList.remove('opening');
     capsule.hidden = true;
     card.hidden = true;
+    card.classList.remove('stashed');
     setState('machine');
+  };
+
+  // 刮完的照片先飛進扭蛋圖鑑，才進行下一步（再扭一次、退出）
+  const stash = async () => {
+    if (state !== 'won') return;
+    setState('collecting');
+    await collection?.stash(card, prize.src, prize.isNew);
   };
 
   // 扭蛋從出口掉出、彈一下，再放大移到畫面中央；同時扭蛋機淡出
@@ -232,9 +319,10 @@ export function initGacha({ trigger, photos }) {
   const spin = async () => {
     if (state !== 'machine') return;
     const current = run;
+    markSeen(COACH.machine.key);
     setState('spinning');
 
-    prize = { ...pick(photos), blob: null };
+    prize = { ...pickPrize(photos, collection, newWeight), blob: null, isNew: false };
     photo.src = prize.src;
     photo.alt = prize.name;
     photoReady = photo.decode().catch(() => {});
@@ -244,7 +332,12 @@ export function initGacha({ trigger, photos }) {
       fetch(target.src).then((r) => (r.ok ? r.blob() : null)).then((blob) => { target.blob = blob; }).catch(() => {});
     }
 
-    spinSound((SPIN_MS + DROP_MS * DROP_LAND) / 1000, (SPIN_MS + DROP_MS * DROP_BOUNCE) / 1000);
+    const landAt = SPIN_MS + DROP_MS * DROP_LAND;
+    const bounceAt = SPIN_MS + DROP_MS * DROP_BOUNCE;
+    spinSound(landAt / 1000, bounceAt / 1000);
+    haptic(HAPTIC.ratchet);
+    setTimeout(() => current === run && haptic(HAPTIC.thud), landAt);
+    setTimeout(() => current === run && haptic(HAPTIC.bounce), bounceAt);
     machine.classList.add('spinning');
     await wait(SPIN_MS);
     if (current !== run) return;
@@ -262,8 +355,10 @@ export function initGacha({ trigger, photos }) {
     const current = run;
     stopShake?.();
     stopShake = null;
+    markSeen(COACH.dropped.key);
     setState('opening');
     popSound();
+    haptic(HAPTIC.pop);
     capsule.classList.add('opening');
     const c = centerOf(capsule);
     openBurst(root, c.x, c.y);
@@ -274,24 +369,30 @@ export function initGacha({ trigger, photos }) {
     card.hidden = false;
     fitCard();
     scratch.reset();
+    scratching = false;
     setState('scratch');
   }
 
   const open = () => {
+    if (state !== 'closed') return;
     askMotionPermission();
     toMachine();
     root.hidden = false;
-    document.body.style.overflow = 'hidden';
+    lockScroll();
+    collection?.setGachaOpen(true);
     requestAnimationFrame(() => root.classList.add('open'));
     knob.focus({ preventScroll: true });
   };
 
-  const close = () => {
-    if (state === 'closed') return;
+  const close = async () => {
+    if (state === 'closed' || state === 'collecting') return;
+    await stash();
     toMachine();
+    hideCoach();
     state = 'closed';
     root.classList.remove('open');
-    document.body.style.overflow = '';
+    unlockScroll();
+    collection?.setGachaOpen(false);
     setTimeout(() => {
       if (state === 'closed') root.hidden = true;
     }, CLOSE_MS);
@@ -299,7 +400,8 @@ export function initGacha({ trigger, photos }) {
   };
 
   trigger.addEventListener('click', open);
-  knob.addEventListener('click', spin);
+  // 整台扭蛋機都可以點，不必剛好點中旋鈕；旋鈕本身是按鈕，鍵盤也按得到
+  machine.addEventListener('click', spin);
   capsule.addEventListener('click', openCapsule);
   saveBtn.addEventListener('click', () => {
     if (prize?.downloadable) savePhoto(prize);
@@ -308,7 +410,9 @@ export function initGacha({ trigger, photos }) {
   photo.addEventListener('contextmenu', (e) => {
     if (!prize?.downloadable) e.preventDefault();
   });
-  againBtn.addEventListener('click', () => {
+  againBtn.addEventListener('click', async () => {
+    if (state !== 'won') return;
+    await stash();
     toMachine();
     knob.focus({ preventScroll: true });
   });
@@ -317,4 +421,10 @@ export function initGacha({ trigger, photos }) {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && state !== 'closed') close();
   });
+  // 停著不動才提示：在扭蛋機上有任何觸碰就重新計時
+  root.addEventListener('pointerdown', () => {
+    if (COACH[state]) scheduleCoach();
+  });
+
+  return { open };
 }
