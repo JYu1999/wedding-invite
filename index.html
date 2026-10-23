@@ -26,6 +26,8 @@
   <link rel="stylesheet" href="css/music-player.css">
   <link rel="stylesheet" href="css/gacha.css">
   <link rel="stylesheet" href="css/album.css">
+  <!-- 日夜循環配色：要放最後，蓋過各區塊的白天配色 -->
+  <link rel="stylesheet" href="css/day-night.css">
 
   <script type="module" src="js/main.js"></script>
 </head>
@@ -80,7 +82,7 @@
       <!-- 柔和羽化漸層 -->
       <div class="hero-gradient-fade"></div>
 
-      <!-- 雪景：只在照片範圍內飄落並在底部堆積 -->
+      <!-- 四季飄落物（雪花、櫻花、流星、楓葉）：只在照片範圍內飄落並在底部堆積 -->
       <canvas class="snow-canvas" id="snowCanvas" aria-hidden="true"></canvas>
 
       <!-- 英文小標固定壓在照片下緣 -->

@@ -9,6 +9,7 @@ import { initGallery, createWatermark } from './gallery.js';
 import { initLightbox } from './lightbox.js';
 import { initReveal } from './reveal.js';
 import { initSnow } from './snow/snow.js';
+import { initDayNight } from './day-night.js';
 import { initGacha } from './gacha/gacha.js';
 import { initCollection } from './gacha/collection.js';
 import { initVenueMap } from './venue-map.js';
@@ -16,13 +17,21 @@ import { initLoveTap } from './love-tap.js';
 
 const music = initMusicPlayer();
 
-// 拆信封時播放「開寶箱」特效與音效；翻面進入首頁時開始播放背景音樂
-// （兩者都在點擊當下觸發，算使用者互動，瀏覽器才允許出聲）
-initIntro({ onOpen: playOpenEffect, onEnter: music.play });
-
-initSnow({
+const seasons = initSnow({
   canvas: document.getElementById('snowCanvas'),
   area: document.querySelector('.hero-image-container'),
+});
+
+// 拆信封時播放「開寶箱」特效與音效；翻面進入首頁時開始播放背景音樂
+// （兩者都在點擊當下觸發，算使用者互動，瀏覽器才允許出聲）
+// 進入首頁時，四季從冬天開始輪替、日夜從白天開始循環
+initIntro({
+  onOpen: playOpenEffect,
+  onEnter: () => {
+    music.play();
+    seasons?.restartSeasons();
+    initDayNight();
+  },
 });
 
 initCountdown(WEDDING_DATE);

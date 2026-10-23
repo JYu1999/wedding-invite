@@ -1,0 +1,171 @@
+/* ==================== 日夜循環：白天與夜晚配色，依 --night（0～1，由 js/day-night.js 更新）混色 ==================== */
+/* 只在支援 color-mix 的瀏覽器啟用；舊瀏覽器維持白天配色 */
+@supports (color: color-mix(in srgb, red, blue 50%)) {
+  :root {
+    --night: 0;
+    /* 底色跟著 --night 均勻變暗；文字色集中在正中間（0.42～0.58）很快翻成淺色，
+       漸變到一半、底色是灰色時，字也不會跟著變成灰色而看不清楚 */
+    --dn: calc(var(--night) * 100%);
+    --dn-ink: calc(clamp(0, (var(--night) - 0.42) / 0.16, 1) * 100%);
+
+    --bg-color: color-mix(in srgb, #faf9f6, #151922 var(--dn));
+    --hero-bg: color-mix(in srgb, #faf8f5, #151922 var(--dn));
+    --card-bg: color-mix(in srgb, #ffffff, #1d222d var(--dn));
+    --text-main: color-mix(in srgb, #583e17, #eee3d1 var(--dn-ink));
+    --text-muted: color-mix(in srgb, #796249, #b4a693 var(--dn-ink));
+    --accent-silver: color-mix(in srgb, #575b70, #aab0c8 var(--dn-ink));
+    --accent-hover: color-mix(in srgb, #837461, #d6c09c var(--dn-ink));
+    --border-color: color-mix(in srgb, #e5e5e5, #2d3341 var(--dn));
+    --rose-accent: color-mix(in srgb, #deb6ab, #b07c71 var(--dn));
+    --wine-accent: color-mix(in srgb, #b35d50, #e3907f var(--dn-ink));
+
+    /* 文字外圍的柔光：白天是白光，夜晚換成底色，字才不會發白邊 */
+    --halo: color-mix(in srgb, #ffffff, #151922 var(--dn-ink));
+  }
+
+  .section-eyebrow {
+    color: color-mix(in srgb, #8c8075, #a99c8d var(--dn-ink));
+  }
+
+  .section-title {
+    color: color-mix(in srgb, #423b35, #f1e8da var(--dn-ink));
+  }
+
+  /* ---------- 首頁主視覺 ---------- */
+  .hero-bg-img {
+    filter: brightness(calc(1 - var(--night) * 0.3)) saturate(calc(1 - var(--night) * 0.2));
+  }
+
+  .hero-gradient-fade {
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      transparent 76%,
+      color-mix(in srgb, var(--hero-bg) 45%, transparent) 90%,
+      var(--hero-bg) 97%
+    );
+  }
+
+  .hero-image-container .subtitle {
+    color: color-mix(in srgb, #4a3e35, #eadfcf var(--dn-ink));
+    text-shadow:
+      0 0 8px color-mix(in srgb, var(--halo) 95%, transparent),
+      0 1px 3px color-mix(in srgb, var(--halo) 90%, transparent),
+      0 0 16px color-mix(in srgb, var(--halo) 80%, transparent);
+  }
+
+  .hero-content .person {
+    text-shadow:
+      0 0 10px color-mix(in srgb, var(--halo) 95%, transparent),
+      0 1px 4px color-mix(in srgb, var(--halo) 90%, transparent),
+      0 0 20px color-mix(in srgb, var(--halo) 70%, transparent);
+  }
+
+  .hero-content .person .role {
+    color: color-mix(in srgb, #6e6155, #c5b7a6 var(--dn-ink));
+  }
+
+  .hero-content .person .name {
+    color: color-mix(in srgb, #53341b, #f4e7d4 var(--dn-ink));
+  }
+
+  .hero-content .person-and {
+    text-shadow: 0 0 8px color-mix(in srgb, var(--halo) 80%, transparent);
+  }
+
+  .parent-names {
+    color: color-mix(in srgb, #594f47, #d9cdbd var(--dn-ink));
+  }
+
+  .parent-alias {
+    color: color-mix(in srgb, #9e9389, #8f8579 var(--dn-ink));
+  }
+
+  .date-hero {
+    color: color-mix(in srgb, #8c8075, #b6a897 var(--dn-ink));
+  }
+
+  @media (min-width: 768px) {
+    .hero-gradient-fade {
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        transparent 80%,
+        color-mix(in srgb, var(--hero-bg) 45%, transparent) 92%,
+        var(--hero-bg) 98%
+      );
+    }
+
+    .hero-image-container .subtitle {
+      color: color-mix(in srgb, #5c5044, #eadfcf var(--dn-ink));
+    }
+
+    .hero-content .person {
+      text-shadow:
+        0 0 12px var(--halo),
+        0 1px 5px color-mix(in srgb, var(--halo) 95%, transparent),
+        0 0 25px color-mix(in srgb, var(--halo) 90%, transparent);
+    }
+
+    .date-hero {
+      color: color-mix(in srgb, #7d7165, #b6a897 var(--dn-ink));
+    }
+  }
+
+  /* ---------- 倒數計時、婚禮資訊卡片與月曆 ---------- */
+  .countdown-section,
+  .wedding-calendar-card {
+    background-color: var(--card-bg);
+  }
+
+  .btn-cal {
+    color: color-mix(in srgb, #6e6259, #cfc1ae var(--dn-ink));
+    border-color: color-mix(in srgb, #dcd5cc, #3b4252 var(--dn));
+  }
+
+  .btn-cal:hover {
+    background: color-mix(in srgb, #6e6259, #cfc1ae var(--dn-ink));
+    color: var(--card-bg);
+  }
+
+  .wedding-calendar-card {
+    color: color-mix(in srgb, #555555, #c9c3ba var(--dn-ink));
+  }
+
+  .calendar-month-title,
+  .cal-day {
+    color: color-mix(in srgb, #666666, #c0b9b0 var(--dn-ink));
+  }
+
+  .day-name {
+    color: color-mix(in srgb, #999999, #7f786f var(--dn-ink));
+  }
+
+  /* 12/20 愛心日期自己有底色，日夜都維持原樣 */
+  .wedding-day {
+    color: #a8383f;
+  }
+
+  /* ---------- 相片藝廊 ---------- */
+  .gallery-item {
+    background-color: color-mix(in srgb, #f0ebe4, #232835 var(--dn));
+  }
+
+  /* ---------- 音樂播放器 ---------- */
+  .music-player-bar {
+    background: color-mix(in srgb, rgba(255, 255, 255, 0.75), rgba(29, 34, 45, 0.75) var(--dn));
+  }
+
+  .player-btn {
+    background: radial-gradient(
+      circle at 30% 30%,
+      color-mix(in srgb, #fbf9f5, #2c313d var(--dn)),
+      color-mix(in srgb, #ece4d8, #1d212b var(--dn))
+    );
+    color: color-mix(in srgb, #8c734b, #d8bc7d var(--dn-ink));
+  }
+
+  .song-title {
+    color: color-mix(in srgb, #5c5248, #d9cdbd var(--dn-ink));
+  }
+}

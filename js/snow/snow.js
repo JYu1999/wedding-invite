@@ -1,13 +1,16 @@
-// 首頁照片上的雪景：雪花只在照片範圍內飄落，落到底部後堆積；
-// 滑鼠經過或手機點擊積雪會讓它慢慢融化
+// 首頁照片上的四季景色：每 10 秒換一季（雪花、櫻花、流星、楓葉），只在照片範圍內飄落，
+// 落到底部後一律堆成積雪；滑鼠經過或手機點擊積雪會讓它慢慢融化
 
-import { createFlakeSprites } from './sprites.js';
+import { createFlakeSprites, createSakuraSprites, createLeafSprites } from './sprites.js';
+import { SEASONS } from './seasons.js';
 import { SnowPile } from './pile.js';
 
 const MAX_DPR = 2;
 const FRAME_MS = 1000 / 60;      // 速度以 60fps 為基準，高更新率螢幕不會飄得比較快
 const GROUND_OFFSET = 3;         // 積雪地面距照片底部
 const MOBILE_BREAKPOINT = 768;
+const SEASON_MS = 10_000;        // 每 10 秒換一季：冬 → 春 → 夏 → 秋
+const SPARK_COLOR = '255, 236, 190';
 
 // 積雪高度上限：不蓋住照片下緣的英文小標
 const MAX_PILE_MOBILE = 22;
@@ -19,55 +22,36 @@ const MELT_RADIUS_MOUSE = 46;
 const MELT_RADIUS_TOUCH = 60;
 const TOUCH_MELT_MS = 1500;      // 手機點一下持續融化的時間
 
-class Snowflake {
-  constructor(world, sprites) {
-    this.world = world;
-    this.sprites = sprites;
-    this.reset(true);
+// 照片上的一顆飄落物：外觀與動作由所屬季節決定（seasons.js）
+// slot 是它在整批粒子裡的固定位置（0～1），季節的 share 決定前多少比例會出場
+class Particle {
+  constructor(slot) {
+    this.slot = slot;
+    this.season = null;
+    this.idle = true;
+    this.fade = 1;
+    this.fadeSpeed = 0;
   }
 
-  reset(initial = false) {
-    const { width, height } = this.world;
-    // 約六成是不同造型的六角結晶，其餘為遠景柔焦小雪點
-    this.isCrystal = Math.random() < 0.6;
-    const { crystals, dot } = this.sprites;
-    this.sprite = this.isCrystal ? crystals[Math.floor(Math.random() * crystals.length)] : dot;
-    this.size = this.isCrystal ? Math.random() * 12 + 9 : Math.random() * 4 + 3; // 繪製尺寸 (px)
-    this.depositArea = this.size * (this.isCrystal ? 6 : 4);                     // 落地後增加的積雪量 (px²)
-    this.x = Math.random() * width;
-    // 初始時均勻分布在照片上，後續重置則從頂部外生成
-    this.y = initial ? Math.random() * height : -this.size;
-    // 越大的雪花（離鏡頭越近）掉得稍快，營造景深
-    this.speedY = this.isCrystal ? this.size * 0.02 + 0.2 : Math.random() * 0.15 + 0.18;
-    this.speedX = Math.random() * 0.2 - 0.1;           // 基礎微風橫移
-    this.opacity = this.isCrystal ? Math.random() * 0.3 + 0.65 : Math.random() * 0.4 + 0.35;
-    this.angle = Math.random() * Math.PI * 2;
-    this.angleSpeed = Math.random() * 0.01 + 0.005;    // 左右擺動頻率
-    this.swayRange = Math.random() * 0.4 + 0.2;        // 左右搖曳幅度
-    this.rotation = Math.random() * Math.PI * 2;
-    this.rotationSpeed = (Math.random() - 0.5) * 0.012; // 緩慢自轉，方向各異
+  // arriving：換季時以新季節的樣子散布在照片上淡入；否則從頂部重新落下
+  assign(season, world, sprites, { initial = false, arriving = false } = {}) {
+    this.season = season;
+    this.idle = this.slot >= season.share;
+    if (this.idle) return;
+    season.spawn(this, world, sprites, initial || arriving);
+    this.fade = arriving && !season.instant ? 0 : 1;
+    this.fadeSpeed = Math.random() * 0.02 + 0.015;   // 約 0.5～1 秒淡入淡出
   }
 
-  update(dt) {
-    this.angle += this.angleSpeed * dt;
-    this.x += (Math.sin(this.angle) * this.swayRange + this.speedX) * dt;
-    this.y += this.speedY * dt;
-    this.rotation += this.rotationSpeed * dt;
-  }
-
-  draw(ctx) {
-    ctx.save();
-    ctx.globalAlpha = this.opacity;
-    ctx.translate(this.x, this.y);
-    ctx.rotate(this.rotation);
-    ctx.drawImage(this.sprite, -this.size / 2, -this.size / 2, this.size, this.size);
-    ctx.restore();
+  get hidden() {
+    return this.idle || Boolean(this.season.hidden?.(this));
   }
 }
 
-// 融雪時從雪面彈起的小水珠
+// 融雪時從雪面彈起的小水珠（也用在流星落地濺起的火花）
 class Droplet {
-  constructor(x, y) {
+  constructor(x, y, color = '170, 200, 230') {
+    this.color = color;
     this.x = x;
     this.y = y;
     this.vx = (Math.random() - 0.5) * 0.6;
@@ -86,7 +70,7 @@ class Droplet {
   draw(ctx) {
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(170, 200, 230, ${this.life * 0.8})`;
+    ctx.fillStyle = `rgba(${this.color}, ${this.life * 0.8})`;
     ctx.fill();
   }
 }
@@ -94,7 +78,11 @@ class Droplet {
 export function initSnow({ canvas, area }) {
   if (!canvas || !area) return;
   const ctx = canvas.getContext('2d');
-  const sprites = createFlakeSprites();
+  const sprites = {
+    snow: createFlakeSprites(),
+    sakura: createSakuraSprites(),
+    leaves: createLeafSprites(),
+  };
   const pile = new SnowPile();
   const world = { width: 0, height: 0, groundY: 0 };
   const droplets = [];
@@ -113,9 +101,12 @@ export function initSnow({ canvas, area }) {
   resize();
   new ResizeObserver(resize).observe(area);
 
-  // 依螢幕寬度決定雪花密度（手機版適度減少，避免耗電）
-  const flakeCount = world.width < MOBILE_BREAKPOINT ? 35 : 65;
-  const flakes = Array.from({ length: flakeCount }, () => new Snowflake(world, sprites));
+  // 依螢幕寬度決定粒子數量（手機版適度減少，避免耗電）
+  const count = world.width < MOBILE_BREAKPOINT ? 35 : 65;
+  let seasonStart = performance.now();
+  const currentSeason = (now) => SEASONS[Math.floor((now - seasonStart) / SEASON_MS) % SEASONS.length];
+  const particles = Array.from({ length: count }, (_, i) => new Particle(i / count));
+  particles.forEach((p) => p.assign(SEASONS[0], world, sprites, { initial: true }));
 
   // ---------- 融雪互動：滑鼠經過、手機點擊 ----------
   const setPointer = (e) => {
@@ -162,14 +153,33 @@ export function initSnow({ canvas, area }) {
     lastTime = now;
     const { width, height, groundY } = world;
 
-    for (const flake of flakes) {
-      flake.update(dt);
-      if (flake.x < -flake.size || flake.x > width + flake.size) {
-        flake.reset();
-      } else if (flake.y + flake.size * 0.3 >= groundY - pile.heightAt(flake.x)) {
+    const season = currentSeason(now);
+
+    for (const p of particles) {
+      // 換季：還沒出場的直接換成新季節；飄在空中的先淡出，消失後再以新季節的樣子出現
+      if (p.season !== season) {
+        if (p.hidden) {
+          p.assign(season, world, sprites, { arriving: true });
+        } else if ((p.fade -= p.fadeSpeed * dt) <= 0) {
+          p.assign(season, world, sprites, { arriving: true });
+        }
+      } else if (p.fade < 1) {
+        p.fade = Math.min(1, p.fade + p.fadeSpeed * dt);
+      }
+      if (p.idle) continue;
+
+      p.season.update(p, dt);
+      if (p.hidden) continue;
+      if (p.x < -p.margin || p.x > width + p.margin || p.y > height + p.margin) {
+        p.assign(season, world, sprites);
+      } else if (p.y + p.size * 0.3 >= groundY - pile.heightAt(p.x)) {
         // 碰到照片底部（或已堆起的雪面）就加入積雪
-        pile.deposit(flake.x, flake.depositArea, flake.size * 3);
-        flake.reset();
+        pile.deposit(p.x, p.depositArea, p.size * 3);
+        if (p.season.instant) {
+          // 流星落地濺起幾點火花
+          for (let i = 0; i < 5; i++) droplets.push(new Droplet(p.x, groundY - pile.heightAt(p.x), SPARK_COLOR));
+        }
+        p.assign(season, world, sprites);
       }
     }
 
@@ -182,7 +192,9 @@ export function initSnow({ canvas, area }) {
     }
 
     ctx.clearRect(0, 0, width, height);
-    flakes.forEach((flake) => flake.draw(ctx));
+    for (const p of particles) {
+      if (!p.idle) p.season.draw(p, ctx, p.fade);
+    }
     pile.draw(ctx, groundY, now);
     droplets.forEach((drop) => drop.draw(ctx));
 
@@ -197,4 +209,11 @@ export function initSnow({ canvas, area }) {
       rafId = requestAnimationFrame(frame);
     }
   }).observe(area);
+
+  return {
+    // 從冬天重新開始輪替（進入首頁時呼叫）
+    restartSeasons() {
+      seasonStart = performance.now();
+    },
+  };
 }
