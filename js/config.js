@@ -37,6 +37,7 @@ const LOTTERY_DIR = 'assets/images/lottery/';
 
 const LOTTERY_DOWNLOADABLE = [
   '一起睡覺的好姐妹直到麻吉翻了身.jpg',
+  '再見了小泰飽.jpg',
   '坐沙發看電視的麻吉.jpg',
   '搶令狗玩具的麻吉.jpg',
   '搶奪紅蘿蔔的令狗.jpg',
@@ -47,10 +48,12 @@ const LOTTERY_DOWNLOADABLE = [
   '眺望遠方的小企鵝🐧.jpg',
   '紅蘿蔔被偷走的令狗.jpg',
   '肥嘟嘟麻吉.jpg',
+  '豆芽和小波.jpg',
   '賣光紅蘿蔔的小令狗.jpg',
   '賣紅蘿蔔的小令狗.jpg',
   '迷你小麻吉.jpg',
   '麻吉和令狗修煉柔術ing.jpg',
+  '麻吉的小腦袋瓜.jpg',
   '麻吉睡搞搞.jpg',
   '麻吉與她的青蛙🐸好夥伴.jpg',
 ];
@@ -58,7 +61,10 @@ const LOTTERY_DOWNLOADABLE = [
 const LOTTERY_VIEW_ONLY = [
   '7 與兩隻貓.jpg',
   '不敢睜開眼希望是我的幻覺.jpg',
+  '京都塔下的美女與野獸.jpg',
   '喜歡你:妳在我身邊的每一個日子.jpg',
+  '斯巴達女壯士.JPG',
+  '泰國公主和她的仰慕者.jpg',
   '第一次見到麻吉.jpg',
   '賞櫻初體驗.jpg',
   '青森弘前城の櫻花愛心.jpg',
