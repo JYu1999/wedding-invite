@@ -631,6 +631,12 @@
   cursor: pointer;
 }
 
+/* 不能點的時候，iPhone 觸覺回饋的隱形開關讓點擊穿過去，不會白白喀一下 */
+.gacha:not([data-state="machine"]) .gacha-machine > .tap-haptic,
+.gacha:not([data-state="dropped"]) .gacha-capsule > .tap-haptic {
+  pointer-events: none;
+}
+
 /* ---------- 操作提示：手指對準目標，點一下示範或來回刮的示範 ---------- */
 .gacha-coach {
   position: absolute;
