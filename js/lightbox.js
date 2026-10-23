@@ -5,7 +5,7 @@
 
 import { lockScroll, unlockScroll } from './scroll-lock.js';
 import { seen, markSeen } from './storage.js';
-import { haptic, HAPTIC } from './fx/haptics.js';
+import { haptic, HAPTIC, tapHaptic } from './fx/haptics.js';
 import { isTouch } from './device.js';
 
 const GAP_PX = 24;            // 相鄰兩張照片之間的間距
@@ -198,6 +198,8 @@ export function initLightbox({ watermark } = {}) {
   bind('lightboxClose', () => close());
   bind('lightboxPrev', () => go(-1));
   bind('lightboxNext', () => go(1));
+  // iPhone 點左右鍵時喀一下（手指拖曳切換在 iPhone 上沒有觸覺回饋）
+  ['lightboxPrev', 'lightboxNext'].forEach((id) => tapHaptic(document.getElementById(id)));
 
   // 點照片本身不關閉，點背景才關閉；剛拖曳完放開的那一下不算點擊
   lightbox.addEventListener('click', (e) => {

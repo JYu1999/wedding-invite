@@ -1,7 +1,9 @@
-// 手機震動回饋：Android 用 Vibration API 照著節奏震動
-// iPhone 的 Safari 不支援 Vibration API，改用 iOS 18 起「開關」元件切換時的系統觸覺回饋：
-// 只能發出固定強度的「喀」一下，所以節奏裡的每一段「震」都換成喀一下；舊版 iOS 就安靜不動
-// 只在手指操作的裝置上作用，電腦不會有反應
+// 手機震動回饋
+// Android：用 Vibration API 照著節奏震動，只在手指操作的裝置上作用，電腦不會有反應
+// iPhone：Safari 不支援 Vibration API，唯一的觸覺回饋是「開關」元件（<input type="checkbox" switch>）切換時的「喀」一下，
+// 而且從 iOS 26.5 起一定要手指真的點到開關才會喀，用程式去點它不會有反應。
+// 所以在可以點的地方疊一個看不見的開關（tapHaptic），手指點下去就喀一下，點擊照樣傳給底下的元素；
+// 拖曳、計時器觸發的震動（刮銀漆、扭蛋落地、中獎⋯⋯）在 iPhone 上做不到
 
 import { IS_IOS, isTouch } from '../device.js';
 
@@ -16,36 +18,19 @@ export const HAPTIC = {
   collect: [12, 60, 22],            // 照片收進扭蛋圖鑑
 };
 
-let iosSwitch = null;
-
-function iosTick() {
-  if (!iosSwitch) {
-    iosSwitch = document.createElement('label');
-    iosSwitch.ariaHidden = 'true';
-    iosSwitch.style.display = 'none';
-    const input = document.createElement('input');
-    input.type = 'checkbox';
-    input.setAttribute('switch', '');
-    iosSwitch.append(input);
-    document.body.append(iosSwitch);
-  }
-  iosSwitch.click();
+export function haptic(pattern) {
+  if (!isTouch() || typeof navigator.vibrate !== 'function') return;
+  navigator.vibrate(pattern);
 }
 
-export function haptic(pattern) {
-  if (!isTouch()) return;
-  const steps = [].concat(pattern);
-  if (typeof navigator.vibrate === 'function') {
-    navigator.vibrate(steps);
-    return;
-  }
-  if (!IS_IOS) return;
-  let at = 0;
-  steps.forEach((ms, i) => {
-    if (i % 2 === 0) {
-      if (at === 0) iosTick();
-      else setTimeout(iosTick, at);
-    }
-    at += ms;
-  });
+// iPhone：點這個元素時喀一下（樣式在 base.css 的 .tap-haptic）
+export function tapHaptic(el) {
+  if (!IS_IOS || !el) return;
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  input.setAttribute('switch', '');
+  input.className = 'tap-haptic';
+  input.tabIndex = -1;
+  input.ariaHidden = 'true';
+  el.append(input);
 }

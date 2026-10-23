@@ -77,3 +77,16 @@ footer {
   margin-top: 4px;
   opacity: 0.7;
 }
+
+/* iPhone 觸覺回饋用的隱形開關（js/fx/haptics.js 的 tapHaptic），蓋滿整個可以點的元素，手指點到它才會喀一下 */
+.tap-haptic {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+  -webkit-tap-highlight-color: transparent;
+}

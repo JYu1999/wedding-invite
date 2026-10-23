@@ -36,7 +36,7 @@ export function initBubble({ onTap }) {
   let toastTimer = 0;
   let justDragged = false;
 
-  const size = () => el.offsetWidth || 56;
+  const size = () => el.offsetWidth || 64;
 
   // y 存成「可移動範圍的比例」，換手機方向或視窗大小時位置也合理
   const bounds = () => {

@@ -7,7 +7,7 @@
 
 import { initScratch } from './scratch.js';
 import { spinSound, popSound, scratchSound, fanfare, openBurst, celebrate } from './effects.js';
-import { haptic, HAPTIC } from '../fx/haptics.js';
+import { haptic, HAPTIC, tapHaptic } from '../fx/haptics.js';
 import { IS_IOS, isTouch } from '../device.js';
 import { seen, markSeen } from '../storage.js';
 import { lockScroll, unlockScroll } from '../scroll-lock.js';
@@ -403,6 +403,9 @@ export function initGacha({ trigger, photos, collection, newWeight = 1 }) {
   // 整台扭蛋機都可以點，不必剛好點中旋鈕；旋鈕本身是按鈕，鍵盤也按得到
   machine.addEventListener('click', spin);
   capsule.addEventListener('click', openCapsule);
+  // iPhone 點扭蛋機、扭蛋時喀一下（只有能點的時候，見 gacha.css）
+  tapHaptic(machine);
+  tapHaptic(capsule);
   saveBtn.addEventListener('click', () => {
     if (prize?.downloadable) savePhoto(prize);
   });
