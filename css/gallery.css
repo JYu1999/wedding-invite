@@ -67,6 +67,16 @@
   transform: scale(1.04);
 }
 
+/* 婚紗照只能欣賞：不能拖曳、選取，長按也不跳出儲存選單（點擊交給外層開燈箱） */
+.gallery-item img,
+.lightbox-frame img {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
 /* 浮水印：右下角細字 JYU & CHI + 手寫 Wedding
    半透明白字加深色柔影，淺色或純白背景上也看得清楚 */
 .watermark {

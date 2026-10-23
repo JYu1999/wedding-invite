@@ -1,5 +1,6 @@
 // 婚紗剪影：最喜歡的一張置頂放大，其餘照片直式並排、橫式另成一列（都不裁切），加上浮水印，點擊開啟燈箱
 // 燈箱可用 ‹ › 按鈕、鍵盤方向鍵、手機左右滑切換，按 ✕、Esc 或點背景關閉
+// 照片只能欣賞，不提供儲存：擋掉右鍵另存、拖曳與長按選單
 
 const SWIPE_MIN_PX = 40;
 
@@ -48,6 +49,8 @@ function initLightbox(watermark) {
   if (!lightbox || !img) return null;
 
   img.closest('.lightbox-frame')?.append(createWatermark(watermark));
+  img.draggable = false;
+  lightbox.addEventListener('contextmenu', (e) => e.preventDefault());
 
   let photos = [];
   let index = 0;
@@ -124,6 +127,7 @@ function createItem({ src, alt, shape, featured = false }, watermark) {
   img.alt = alt;
   img.loading = featured ? 'eager' : 'lazy';
   img.decoding = 'async';
+  img.draggable = false;
 
   item.append(img, createWatermark(watermark));
   return item;
@@ -145,6 +149,8 @@ export function initGallery({ featured, photos, watermark }) {
     item.style.setProperty('--order-wide', wide[i]);
     grid.append(item);
   });
+
+  grid.addEventListener('contextmenu', (e) => e.preventDefault());
 
   const lightbox = initLightbox(watermark);
   if (!lightbox) return;
