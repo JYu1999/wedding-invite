@@ -38,7 +38,7 @@ export class ParticleLayer {
   constructor(host) {
     this.canvas = document.createElement('canvas');
     this.canvas.className = 'fx-canvas';
-    host.append(this.canvas);
+    this.host = host;
     this.ctx = this.canvas.getContext('2d');
     this.particles = [];
     this.painters = [];   // 其他每幀要畫的東西（光環等），回傳 false 代表結束
@@ -74,6 +74,7 @@ export class ParticleLayer {
     if (this.running) return;
     this.running = true;
     this.last = 0;
+    this.host.append(this.canvas);
     requestAnimationFrame(this.frame);
   }
 
@@ -115,8 +116,9 @@ export class ParticleLayer {
     if (this.particles.length || this.painters.length) {
       requestAnimationFrame(this.frame);
     } else {
+      // 粒子都消失後把全螢幕畫布拿掉，不要一直佔著手機的繪圖記憶體
       this.running = false;
-      ctx.clearRect(0, 0, this.width, this.height);
+      this.canvas.remove();
     }
   };
 }

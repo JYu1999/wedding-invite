@@ -8,6 +8,9 @@
   align-items: center;
   z-index: 9999;
   transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), visibility 1s;
+  /* 固定成獨立合成層：避免部分手機（iOS Safari / WebView）在信紙 3D 翻面後整層遮罩沒畫出來、透出首頁 */
+  isolation: isolate;
+  transform: translateZ(0);
 }
 
 #intro-overlay.done {
@@ -112,6 +115,11 @@ body.intro-entering .hero-bg-img {
   align-items: center;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+}
+
+.letter-front {
+  /* 正面也給 3D transform，WebKit 的 backface-visibility 才會穩定生效（不然翻面後兩面可能一起消失） */
+  transform: rotateY(0deg);
 }
 
 .letter-back {
@@ -336,7 +344,9 @@ body.intro-entering .hero-bg-img {
   transition: transform 1s cubic-bezier(0.5, 0, 0.2, 1);
 }
 
-/* 鏡頭推進由 JS 逐幀設定 transform */
+/* 鏡頭推進由 JS 逐幀設定 transform。信紙抽出後就先升成合成層，
+   翻面、停頓、開始推進之間圖層結構都不再變動，手機才不會在這段空檔把信封畫不見 */
+.envelope-container.pulled,
 .envelope-container.zooming {
   will-change: transform;
 }
