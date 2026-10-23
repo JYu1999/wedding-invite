@@ -287,15 +287,63 @@
   color: var(--gold-light);
 }
 
+/* 旋鈕就是轉蛋的按鈕：等待轉蛋時外圈有金色光暈呼吸，旋鈕偶爾來回轉一下提示可以轉 */
 .gm-knob {
   position: absolute;
   left: 0.9em;
   top: 1.9em;
   width: 2.8em;
   height: 2.8em;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
+  font: inherit;
   background: radial-gradient(circle at 35% 30%, #fbe2a8, var(--gold) 55%, #b07a22);
   box-shadow: 0 0.12em 0.3em rgba(0, 0, 0, 0.35), inset 0 -0.15em 0.25em rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: scale 0.15s ease;
+}
+
+.gm-knob:disabled {
+  cursor: default;
+}
+
+.gm-knob::before {
+  content: '';
+  position: absolute;
+  inset: -0.35em;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0.14em rgba(246, 213, 138, 0.9), 0 0 0.9em 0.3em rgba(246, 213, 138, 0.55);
+}
+
+.gacha[data-state="machine"] .gm-knob::before {
+  animation: knobHalo 1.6s ease-in-out infinite;
+}
+
+.gacha[data-state="machine"] .gm-knob {
+  animation: knobHint 2.4s ease-in-out infinite;
+}
+
+.gacha[data-state="machine"] .gm-knob:hover {
+  scale: 1.06;
+}
+
+.gm-knob:active:not(:disabled) {
+  scale: 0.95;
+}
+
+@keyframes knobHalo {
+  0%, 100% { opacity: 0.35; scale: 0.95; }
+  50% { opacity: 1; scale: 1.08; }
+}
+
+@keyframes knobHint {
+  0%, 60%, 100% { rotate: 0deg; }
+  72% { rotate: 35deg; }
+  84% { rotate: -10deg; }
 }
 
 /* 把手的握柄 */
@@ -494,10 +542,11 @@
   border-radius: inherit;
   touch-action: none;
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23e7b74f' stroke='%23a8741f' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='8.5' fill='none' stroke='%23fbe2a8' stroke-width='1.5'/%3E%3C/svg%3E") 16 16, pointer;
-  transition: opacity 0.8s ease;
 }
 
+/* 只有刮完時淡出；再扭一次重新蓋上銀漆要立刻蓋滿，不能淡入，否則新照片會先露出來 */
 .gacha-scratch.cleared {
+  transition: opacity 0.8s ease;
   opacity: 0;
   pointer-events: none;
 }
@@ -537,6 +586,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .gacha-rays,
+  .gacha[data-state="machine"] .gm-knob::before,
+  .gacha[data-state="machine"] .gm-knob,
   .gacha[data-state="dropped"] .capsule-shell,
   .gacha[data-state="won"] .gacha-card {
     animation: none;

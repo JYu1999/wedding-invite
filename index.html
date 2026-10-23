@@ -221,7 +221,7 @@
                 <!-- 12月25日 聖誕節：點聖誕樹開啟扭蛋機 -->
                 <button class="cal-day christmas-day" id="gachaTrigger" type="button" aria-label="25 聖誕節：開啟聖誕扭蛋機">
                   <span class="tree-icon" aria-hidden="true">🎄</span>
-                  <span class="tree-tip" aria-hidden="true">點我扭蛋</span>
+                  <span class="tree-tip" aria-hidden="true">點我取得聖誕節禮物</span>
                 </button>
                 <span class="cal-day">26</span>
                 <span class="cal-day">27</span>
@@ -288,16 +288,16 @@
       <div class="gacha-arena" id="gachaArena">
         <div class="gacha-rays" aria-hidden="true"></div>
 
-        <!-- 扭蛋機本體：球罩裡的小扭蛋由 js 產生 -->
-        <div class="gacha-machine" id="gachaMachine" aria-hidden="true">
-          <span class="gm-star">★</span>
-          <div class="gm-dome" id="gachaDome"></div>
+        <!-- 扭蛋機本體：按旋鈕轉蛋；球罩裡的小扭蛋由 js 產生 -->
+        <div class="gacha-machine" id="gachaMachine">
+          <span class="gm-star" aria-hidden="true">★</span>
+          <div class="gm-dome" id="gachaDome" aria-hidden="true"></div>
           <div class="gm-body">
-            <span class="gm-label">JYU &amp; CHI</span>
-            <span class="gm-knob"><span></span></span>
-            <span class="gm-chute" id="gachaChute"></span>
+            <span class="gm-label" aria-hidden="true">JYU &amp; CHI</span>
+            <button class="gm-knob" id="gachaKnob" type="button" aria-label="轉動旋鈕扭蛋"><span></span></button>
+            <span class="gm-chute" id="gachaChute" aria-hidden="true"></span>
           </div>
-          <div class="gm-base"></div>
+          <div class="gm-base" aria-hidden="true"></div>
         </div>
 
         <!-- 掉出來的扭蛋 -->
@@ -316,7 +316,6 @@
       </div>
 
       <div class="gacha-actions">
-        <button class="gacha-btn gacha-btn--primary" id="gachaSpin" type="button">轉一次</button>
         <button class="gacha-btn gacha-btn--primary" id="gachaSave" type="button" hidden>儲存照片</button>
         <button class="gacha-btn" id="gachaAgain" type="button" hidden>再扭一次</button>
         <button class="gacha-btn" id="gachaExit" type="button" hidden>退出</button>

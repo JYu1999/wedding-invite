@@ -1,5 +1,5 @@
 // 扭蛋機的音效與特效：轉把手的喀啦聲、扭蛋落地、打開時的閃光、刮銀漆的沙沙聲、中獎的拉炮與彩帶
-// 音效都用 Web Audio 即時合成；第一次出聲是在點擊「轉一次」的當下，iOS 才允許播放
+// 音效都用 Web Audio 即時合成；第一次出聲是在按下旋鈕的當下，iOS 才允許播放
 
 import { ParticleLayer, glowSprite } from '../fx/particles.js';
 import { getAudio, tone, bell, noise } from '../fx/sound.js';

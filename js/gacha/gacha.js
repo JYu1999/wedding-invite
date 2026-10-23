@@ -1,4 +1,4 @@
-// 聖誕扭蛋機：點月曆上的 🎄 開啟 → 「轉一次」掉出一顆扭蛋 → 點擊（手機也可以搖一搖）打開
+// 聖誕扭蛋機：點月曆上的 🎄 開啟 → 按扭蛋機的旋鈕掉出一顆扭蛋 → 點擊（手機也可以搖一搖）打開
 // → 用滑鼠左鍵或手指刮掉照片上的銀漆 → 差不多刮乾淨就恭喜獲得照片，可以儲存、再扭一次或退出
 // 每次從照片清單完全隨機挑一張，可能重複；隨時可以按右上角 ✕、Esc 結束
 
@@ -116,7 +116,7 @@ export function initGacha({ trigger, photos }) {
   const capsule = $('gachaCapsule');
   const card = $('gachaCard');
   const photo = $('gachaPhoto');
-  const spinBtn = $('gachaSpin');
+  const knob = $('gachaKnob');
   const saveBtn = $('gachaSave');
   const againBtn = $('gachaAgain');
   const exitBtn = $('gachaExit');
@@ -148,7 +148,7 @@ export function initGacha({ trigger, photos }) {
       title.textContent = state === 'scratch' ? '刮刮樂' : '聖誕扭蛋機';
     }
     hint.textContent = {
-      machine: '按下「轉一次」，看看會掉出什麼',
+      machine: '轉動扭蛋機的旋鈕，看看會掉出什麼',
       spinning: '轉呀轉⋯⋯',
       dropped: isTouch() ? '點一下扭蛋，或搖一搖手機打開它' : '點一下扭蛋打開它',
       opening: '打開中⋯⋯',
@@ -157,8 +157,7 @@ export function initGacha({ trigger, photos }) {
         ? (isTouch() ? '也可以長按照片直接儲存' : '')
         : '這張是珍藏版，只能在這裡欣賞喔',
     }[state] ?? '';
-    spinBtn.hidden = state !== 'machine' && state !== 'spinning';
-    spinBtn.disabled = state !== 'machine';
+    knob.disabled = state !== 'machine';
     [againBtn, exitBtn].forEach((btn) => { btn.hidden = !won; });
     saveBtn.hidden = !won || !prize.downloadable;
     card.classList.toggle('view-only', !prize?.downloadable);
@@ -284,7 +283,7 @@ export function initGacha({ trigger, photos }) {
     root.hidden = false;
     document.body.style.overflow = 'hidden';
     requestAnimationFrame(() => root.classList.add('open'));
-    spinBtn.focus({ preventScroll: true });
+    knob.focus({ preventScroll: true });
   };
 
   const close = () => {
@@ -300,7 +299,7 @@ export function initGacha({ trigger, photos }) {
   };
 
   trigger.addEventListener('click', open);
-  spinBtn.addEventListener('click', spin);
+  knob.addEventListener('click', spin);
   capsule.addEventListener('click', openCapsule);
   saveBtn.addEventListener('click', () => {
     if (prize?.downloadable) savePhoto(prize);
@@ -311,7 +310,7 @@ export function initGacha({ trigger, photos }) {
   });
   againBtn.addEventListener('click', () => {
     toMachine();
-    spin();
+    knob.focus({ preventScroll: true });
   });
   exitBtn.addEventListener('click', close);
   $('gachaClose').addEventListener('click', close);

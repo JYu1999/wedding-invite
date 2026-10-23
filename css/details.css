@@ -180,7 +180,7 @@
   z-index: 2;
 }
 /* 12/25 聖誕節以 emoji 取代日期，點下去開啟扭蛋機：
-   聖誕樹周圍有呼吸的光暈、偶爾晃一下，下方有「點我扭蛋」小泡泡提示可以點 */
+   聖誕樹周圍有呼吸的光暈、偶爾晃一下，下方有「點我取得聖誕節禮物」小泡泡提示可以點 */
 .christmas-day {
   width: 100%;
   padding: 0;
@@ -220,13 +220,14 @@
   scale: 1.25;
 }
 
-/* 提示泡泡：在聖誕樹正下方（12/31 之後那格是空的），尖角朝上指著聖誕樹 */
+/* 提示泡泡：在聖誕樹下方往右延伸（12/31 之後那幾格是空的），尖角朝上指著聖誕樹 */
 .tree-tip {
+  --tip-arrow: 14px;
   position: absolute;
   left: 50%;
   top: calc(100% + 4px);
   z-index: 3;
-  translate: -50% 0;
+  translate: calc(var(--tip-arrow) * -1) 0;
   padding: 3px 8px;
   border-radius: 999px;
   background: #b35d50;
@@ -243,7 +244,7 @@
 .tree-tip::before {
   content: '';
   position: absolute;
-  left: 50%;
+  left: var(--tip-arrow);
   bottom: 100%;
   translate: -50% 0;
   border: 5px solid transparent;
@@ -263,8 +264,8 @@
 }
 
 @keyframes tipBob {
-  0%, 100% { translate: -50% 0; }
-  50% { translate: -50% 3px; }
+  0%, 100% { translate: calc(var(--tip-arrow) * -1) 0; }
+  50% { translate: calc(var(--tip-arrow) * -1) 3px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
