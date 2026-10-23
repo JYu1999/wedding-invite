@@ -1,7 +1,7 @@
 // 網站可調整的內容集中在這裡：婚禮時間、照片清單、浮水印文字
 
 // 倒數計時的目標時間
-export const WEDDING_DATE = new Date('2026-12-20T12:00:00');
+export const WEDDING_DATE = new Date('2026-12-20T18:00:00');
 
 // 婚紗剪影：照片放在 assets/images/gallery/
 const GALLERY_DIR = 'assets/images/gallery/';
