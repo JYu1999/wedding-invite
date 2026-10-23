@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="css/details.css">
   <link rel="stylesheet" href="css/gallery.css">
   <link rel="stylesheet" href="css/music-player.css">
+  <link rel="stylesheet" href="css/gacha.css">
 
   <script type="module" src="js/main.js"></script>
 </head>
@@ -174,17 +175,16 @@
             <div class="calendar-month-title">DECEMBER 2026</div>
             
             <div class="calendar-grid">
-                <!-- 星期表頭 -->
-                <span class="day-name">SUN</span>
+                <!-- 星期表頭：每週從星期一開始，星期日放最後 -->
                 <span class="day-name">MON</span>
                 <span class="day-name">TUE</span>
                 <span class="day-name">WED</span>
                 <span class="day-name">THU</span>
                 <span class="day-name">FRI</span>
                 <span class="day-name">SAT</span>
+                <span class="day-name">SUN</span>
 
-                <!-- 2026 年 12 月 1 日為星期二，前留兩個空格 -->
-                <span class="empty-day"></span>
+                <!-- 2026 年 12 月 1 日為星期二，前留一個空格 -->
                 <span class="empty-day"></span>
 
                 <!-- 日期 1 ~ 31 -->
@@ -218,8 +218,11 @@
                 <span class="cal-day">22</span>
                 <span class="cal-day">23</span>
                 <span class="cal-day">24</span>
-                <!-- 12月25日 聖誕節 -->
-                <span class="cal-day christmas-day" role="img" aria-label="25 聖誕節">🎄</span>
+                <!-- 12月25日 聖誕節：點聖誕樹開啟扭蛋機 -->
+                <button class="cal-day christmas-day" id="gachaTrigger" type="button" aria-label="25 聖誕節：開啟聖誕扭蛋機">
+                  <span class="tree-icon" aria-hidden="true">🎄</span>
+                  <span class="tree-tip" aria-hidden="true">點我扭蛋</span>
+                </button>
                 <span class="cal-day">26</span>
                 <span class="cal-day">27</span>
                 <span class="cal-day">28</span>
@@ -267,6 +270,58 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
     </button>
     <p class="lightbox-counter" id="lightboxCounter"></p>
+  </div>
+
+  <!-- 聖誕扭蛋機：點月曆上的 🎄 開啟，照片清單在 js/config.js -->
+  <div class="gacha" id="gacha" role="dialog" aria-modal="true" aria-labelledby="gachaTitle" hidden>
+    <button class="gacha-close" id="gachaClose" type="button" aria-label="結束扭蛋">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+
+    <div class="gacha-stage">
+      <div class="gacha-head">
+        <p class="gacha-eyebrow" id="gachaEyebrow">MERRY CHRISTMAS</p>
+        <h2 class="gacha-title" id="gachaTitle" aria-live="polite">聖誕扭蛋機</h2>
+        <p class="gacha-hint" id="gachaHint"></p>
+      </div>
+
+      <div class="gacha-arena" id="gachaArena">
+        <div class="gacha-rays" aria-hidden="true"></div>
+
+        <!-- 扭蛋機本體：球罩裡的小扭蛋由 js 產生 -->
+        <div class="gacha-machine" id="gachaMachine" aria-hidden="true">
+          <span class="gm-star">★</span>
+          <div class="gm-dome" id="gachaDome"></div>
+          <div class="gm-body">
+            <span class="gm-label">JYU &amp; CHI</span>
+            <span class="gm-knob"><span></span></span>
+            <span class="gm-chute" id="gachaChute"></span>
+          </div>
+          <div class="gm-base"></div>
+        </div>
+
+        <!-- 掉出來的扭蛋 -->
+        <button class="gacha-capsule" id="gachaCapsule" type="button" aria-label="打開扭蛋" hidden>
+          <span class="capsule-shell">
+            <span class="capsule-top"></span>
+            <span class="capsule-bottom"></span>
+          </span>
+        </button>
+
+        <!-- 刮刮樂照片卡 -->
+        <div class="gacha-card" id="gachaCard" hidden>
+          <img id="gachaPhoto" alt="">
+          <canvas class="gacha-scratch" id="gachaScratch" aria-label="刮開銀漆看照片"></canvas>
+        </div>
+      </div>
+
+      <div class="gacha-actions">
+        <button class="gacha-btn gacha-btn--primary" id="gachaSpin" type="button">轉一次</button>
+        <button class="gacha-btn gacha-btn--primary" id="gachaSave" type="button" hidden>儲存照片</button>
+        <button class="gacha-btn" id="gachaAgain" type="button" hidden>再扭一次</button>
+        <button class="gacha-btn" id="gachaExit" type="button" hidden>退出</button>
+      </div>
+    </div>
   </div>
 
   <!-- ==================== 6. 頁尾 ==================== -->

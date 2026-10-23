@@ -32,6 +32,12 @@ const SHAPES = {
   image(ctx, p) {
     ctx.drawImage(p.sprite, -p.size / 2, -p.size / 2, p.size, p.size);
   },
+  // 彩帶紙片：跟著旋轉角度壓扁再展開，看起來像在空中翻面
+  confetti(ctx, p) {
+    ctx.scale(1, Math.cos(p.rotation * 2.5));
+    ctx.fillStyle = p.color;
+    ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+  },
 };
 
 export class ParticleLayer {
