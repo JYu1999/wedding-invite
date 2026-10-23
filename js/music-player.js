@@ -32,6 +32,24 @@ export function initMusicPlayer() {
     else audio.pause();
   });
 
+  // 切換分頁、縮小視窗、手機切到別的 App 或鎖屏時暫停，回到頁面再接著播
+  // 只有被這裡暫停的才會自動續播，使用者自己按暫停的就維持暫停
+  let pausedByHidden = false;
+  const pauseWhileAway = () => {
+    if (audio.paused) return;
+    pausedByHidden = true;
+    audio.pause();
+  };
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) pauseWhileAway();
+    else if (pausedByHidden) {
+      pausedByHidden = false;
+      play();
+    }
+  });
+  // iOS 關閉分頁或進入返回快取時不一定會觸發 visibilitychange
+  window.addEventListener('pagehide', pauseWhileAway);
+
   // 滑離首頁時浮現播放器（浮現後不再隱藏）
   const updateVisibility = () => {
     if (!hero) return;
