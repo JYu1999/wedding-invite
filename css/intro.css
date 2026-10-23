@@ -45,6 +45,7 @@ body.intro-entering .hero-bg-img {
 
 .envelope-wrapper {
   position: relative;
+  z-index: 1; /* 疊在開信光芒（.fx-rays / .fx-flash）之上 */
   text-align: center;
   cursor: pointer;
   padding: 15px;

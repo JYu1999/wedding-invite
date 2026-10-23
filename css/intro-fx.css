@@ -8,11 +8,13 @@
   z-index: 10;
 }
 
-/* 光芒與閃光排在信封後方（z-index 為負，仍在遮罩底色之上） */
+/* 光芒與閃光排在信封後方：信封那層 z-index 較高，特效不用負的 z-index。
+   負 z-index 的合成層會讓 WebKit 把遮罩底色拆成另一層，特效移除時重建這層，
+   部分 iPhone 會因此整層遮罩沒畫出來、透出首頁 */
 .fx-rays,
 .fx-flash {
   position: absolute;
-  z-index: -1;
+  z-index: 0;
   border-radius: 50%;
   pointer-events: none;
   translate: -50% -50%;
