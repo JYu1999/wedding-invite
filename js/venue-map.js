@@ -71,7 +71,6 @@ export function initVenueMap() {
   if (!root || !stage) return;
   const $ = (id) => document.getElementById(id);
   const label = $('venueMapLabel');
-  const skipBtn = $('venueMapSkip');
   const replayBtn = $('venueMapReplay');
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -83,7 +82,7 @@ export function initVenueMap() {
 
   let map = null;
   let pin = null;
-  let run = 0;          // 每次播放（或略過）加一，舊的流程看到不一樣就停下
+  let run = 0;          // 每次播放加一，舊的流程看到不一樣就停下
   let visible = false;
   let played = false;
 
@@ -110,7 +109,6 @@ export function initVenueMap() {
     run++;
     setLabel(null);
     root.classList.add('done');
-    skipBtn.hidden = true;
     replayBtn.hidden = false;
   };
 
@@ -119,7 +117,6 @@ export function initVenueMap() {
     played = true;
     root.classList.remove('done');
     replayBtn.hidden = true;
-    skipBtn.hidden = false;
     pin?.remove();
     map.fitBounds(STAGES[0].bounds, { animate: false });
     await wait(FADE_MS * 0.5);
@@ -188,7 +185,6 @@ export function initVenueMap() {
   }, { threshold: 0.6 });
   watch.observe(root);
 
-  skipBtn.addEventListener('click', finish);
   replayBtn.addEventListener('click', () => {
     if (map) play();
   });
