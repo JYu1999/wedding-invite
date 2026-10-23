@@ -38,6 +38,7 @@ const LOTTERY_DIR = 'assets/images/lottery/';
 const LOTTERY_DOWNLOADABLE = [
   '一起睡覺的好姐妹直到麻吉翻了身.jpg',
   '再見了小泰飽.jpg',
+  '回眸一笑的令狗.jpg',
   '坐沙發看電視的麻吉.jpg',
   '搶令狗玩具的麻吉.jpg',
   '搶奪紅蘿蔔的令狗.jpg',
