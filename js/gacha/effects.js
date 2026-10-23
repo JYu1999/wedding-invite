@@ -120,3 +120,13 @@ export function celebrate(host, x, y) {
     }
   });
 }
+
+// 照片收進扭蛋圖鑑：「咻」一聲飛過去，落進泡泡時兩聲上行的鈴；已經收藏過的只有一聲
+export function collectSound(isNew) {
+  const a = getAudio();
+  if (!a) return;
+  noise(a, 0, 0.12, { from: 1800, to: 4200, q: 1.5, gain: 0.05, attack: 0.02 });
+  tone(a, 520, 0, 0.12, { glide: 260, gain: 0.08 });
+  const notes = isNew ? [1318.51, 1975.53] : [1318.51];
+  notes.forEach((f, i) => bell(a, f, 0.05 + i * 0.1, 0.9, 0.05));
+}

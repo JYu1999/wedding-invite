@@ -29,9 +29,10 @@ export const WATERMARK = {
   script: 'Wedding',
 };
 
-// 聖誕扭蛋機（點月曆上的 🎄）：每次從全部照片中完全隨機挑一張，抽中時顯示檔名（不含副檔名）
-// 照片依資料夾分兩種：downloadable/ 抽中後可以儲存，non-downloadable/ 只能欣賞
-// 新增照片時放進對應資料夾，再把檔名加進下面對應的清單
+// 聖誕扭蛋機（點月曆上的 🎄）：每次從全部照片中隨機挑一張，抽中時顯示檔名（不含副檔名）
+// 照片依資料夾分兩種：downloadable/ 抽中後可以儲存，non-downloadable/ 只能欣賞（在扭蛋圖鑑裡標「珍藏」）
+// 新增照片時放進對應資料夾，再把檔名加進下面對應的清單；扭蛋圖鑑會自動多一格、總數跟著變
+// 扭蛋圖鑑用檔名記住訪客收集過哪些照片：已經放上網站的照片不要改檔名，否則會被當成新的一張
 const LOTTERY_DIR = 'assets/images/lottery/';
 
 const LOTTERY_DOWNLOADABLE = [
@@ -70,6 +71,9 @@ const lotteryPhoto = (folder, downloadable) => (file) => ({
   name: file.replace(/\.[^.]+$/, '').replace(/:/g, '/'),
   downloadable,
 });
+
+// 還沒收集到的照片被抽中的機會是收集過的幾倍：1 就是完全隨機；調高一點比較容易集滿，重複的比較少
+export const LOTTERY_NEW_WEIGHT = 3;
 
 export const LOTTERY_PHOTOS = [
   ...LOTTERY_DOWNLOADABLE.map(lotteryPhoto('downloadable', true)),
