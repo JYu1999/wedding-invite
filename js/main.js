@@ -11,6 +11,8 @@ import { initReveal } from './reveal.js';
 import { initSnow } from './snow/snow.js';
 import { initGacha } from './gacha/gacha.js';
 import { initCollection } from './gacha/collection.js';
+import { initVenueMap } from './venue-map.js';
+import { initLoveTap } from './love-tap.js';
 
 const music = initMusicPlayer();
 
@@ -24,6 +26,8 @@ initSnow({
 });
 
 initCountdown(WEDDING_DATE);
+initLoveTap(document.getElementById('weddingDay'));
+initVenueMap();
 // 燈箱、扭蛋圖鑑、扭蛋機都會處理 Esc，要依這個順序初始化：疊在最上面的先處理
 const lightbox = initLightbox({ watermark: () => createWatermark(WATERMARK) });
 initGallery({ featured: GALLERY_FEATURED, photos: GALLERY_PHOTOS, watermark: WATERMARK, lightbox });

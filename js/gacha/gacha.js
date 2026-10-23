@@ -8,9 +8,10 @@
 import { initScratch } from './scratch.js';
 import { spinSound, popSound, scratchSound, fanfare, openBurst, celebrate } from './effects.js';
 import { haptic, HAPTIC, tapHaptic } from '../fx/haptics.js';
-import { IS_IOS, isTouch } from '../device.js';
+import { isTouch } from '../device.js';
 import { seen, markSeen } from '../storage.js';
 import { lockScroll, unlockScroll } from '../scroll-lock.js';
+import { preloadPhoto, savePhoto } from '../save-photo.js';
 
 const SPIN_MS = 1100;        // 轉把手、機器晃動，與 CSS .spinning 的動畫一致
 const DROP_MS = 1500;        // 扭蛋從出口掉出、彈一下、移到畫面中央
@@ -86,28 +87,6 @@ function listenShake(onShake) {
   };
   window.addEventListener('devicemotion', handler);
   return () => window.removeEventListener('devicemotion', handler);
-}
-
-// 儲存照片：iPhone 用分享選單（可以直接「儲存影像」到相簿），其他裝置直接下載原檔
-function savePhoto(prize) {
-  if (IS_IOS && prize.blob) {
-    const file = new File([prize.blob], prize.file, { type: prize.blob.type || 'image/jpeg' });
-    if (navigator.canShare?.({ files: [file] })) {
-      navigator.share({ files: [file] }).catch(() => {});
-      return;
-    }
-  }
-  if (IS_IOS) {
-    // LINE 等內建瀏覽器不支援分享檔案：另開照片，長按即可儲存
-    window.open(prize.src, '_blank');
-    return;
-  }
-  const link = document.createElement('a');
-  link.href = prize.src;
-  link.download = prize.file;
-  document.body.append(link);
-  link.click();
-  link.remove();
 }
 
 // 依權重抽一張：還沒收集到的照片權重是 newWeight，收集過的是 1
@@ -322,15 +301,11 @@ export function initGacha({ trigger, photos, collection, newWeight = 1 }) {
     markSeen(COACH.machine.key);
     setState('spinning');
 
-    prize = { ...pickPrize(photos, collection, newWeight), blob: null, isNew: false };
+    prize = { ...pickPrize(photos, collection, newWeight), isNew: false };
     photo.src = prize.src;
     photo.alt = prize.name;
     photoReady = photo.decode().catch(() => {});
-    // iPhone 的分享選單要在點擊當下就拿到檔案，所以先在背景載好
-    if (prize.downloadable && IS_IOS && navigator.canShare) {
-      const target = prize;
-      fetch(target.src).then((r) => (r.ok ? r.blob() : null)).then((blob) => { target.blob = blob; }).catch(() => {});
-    }
+    if (prize.downloadable) preloadPhoto(prize.src);
 
     const landAt = SPIN_MS + DROP_MS * DROP_LAND;
     const bounceAt = SPIN_MS + DROP_MS * DROP_BOUNCE;

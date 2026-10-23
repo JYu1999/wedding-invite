@@ -1,12 +1,14 @@
 // 全螢幕看照片的燈箱：婚紗剪影與扭蛋圖鑑共用
 // 手指按著照片左右拖，下一張跟著從旁邊滑進來、目前這張縮小淡出；放開時依拖的距離與速度決定切換或彈回
 // 上下拖曳照片可以關閉（像手機相簿）；也可以用 ‹ › 按鈕、鍵盤方向鍵切換，按 ✕、Esc 或點背景關閉
+// 照片設定 download（檔名）時，下方多一顆「儲存照片」按鈕
 // 第一次打開時疊一層操作提示，開始滑動或幾秒後自動消失；只出現這一次，之後想慢慢欣賞照片也不會再被打擾
 
 import { lockScroll, unlockScroll } from './scroll-lock.js';
 import { seen, markSeen } from './storage.js';
 import { haptic, HAPTIC, tapHaptic } from './fx/haptics.js';
 import { isTouch } from './device.js';
+import { preloadPhoto, savePhoto } from './save-photo.js';
 
 const GAP_PX = 24;            // 相鄰兩張照片之間的間距
 const DRAG_START_PX = 8;      // 移動超過這個距離才算拖曳，以下當作點擊
@@ -46,6 +48,7 @@ export function initLightbox({ watermark } = {}) {
   const counter = document.getElementById('lightboxCounter');
   const caption = document.getElementById('lightboxCaption');
   const coach = document.getElementById('lightboxCoach');
+  const saveBtn = document.getElementById('lightboxSave');
   if (!lightbox || !track) return null;
 
   // 三張輪流使用：[上一張, 目前這張, 下一張]
@@ -123,6 +126,9 @@ export function initLightbox({ watermark } = {}) {
     lightbox.classList.toggle('lightbox--protect', item.protect !== false);
     lightbox.classList.toggle('lightbox--plain', item.watermark === false);
     lightbox.classList.toggle('lightbox--single', items.length < 2);
+    lightbox.classList.toggle('lightbox--save', Boolean(item.download));
+    if (saveBtn) saveBtn.hidden = !item.download;
+    if (item.download) preloadPhoto(item.src);
   };
 
   const hideCoach = () => {
@@ -156,8 +162,8 @@ export function initLightbox({ watermark } = {}) {
     busy = false;
   };
 
-  // items：[{ src, alt, caption?, note?, protect?, watermark? }]
-  // protect 預設 true：擋掉右鍵另存與長按選單；watermark: false 不顯示浮水印
+  // items：[{ src, alt, caption?, note?, protect?, watermark?, download? }]
+  // protect 預設 true：擋掉右鍵另存與長按選單；watermark: false 不顯示浮水印；download：儲存時的檔名
   const open = (list, i = 0) => {
     if (!list.length) return;
     items = list;
@@ -198,6 +204,10 @@ export function initLightbox({ watermark } = {}) {
   bind('lightboxClose', () => close());
   bind('lightboxPrev', () => go(-1));
   bind('lightboxNext', () => go(1));
+  bind('lightboxSave', () => {
+    const item = items[index];
+    if (item?.download) savePhoto({ src: item.src, file: item.download });
+  });
   // iPhone 點左右鍵時喀一下（手指拖曳切換在 iPhone 上沒有觸覺回饋）
   ['lightboxPrev', 'lightboxNext'].forEach((id) => tapHaptic(document.getElementById(id)));
 
@@ -222,7 +232,7 @@ export function initLightbox({ watermark } = {}) {
 
   lightbox.addEventListener('pointerdown', (e) => {
     justDragged = false;
-    if (busy || drag || e.target.closest('.lightbox-btn')) return;
+    if (busy || drag || e.target.closest('.lightbox-btn, .lightbox-save')) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     drag = { id: e.pointerId, x: e.clientX, y: e.clientY, axis: null, dx: 0, dy: 0, samples: [] };
   });
