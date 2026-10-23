@@ -142,8 +142,9 @@
 
 /* 12/20 特殊愛心樣式 */
 .wedding-day {
-  color: #c95d63; /* 質感乾燥玫瑰紅 / 暖紅 */
-  font-weight: 600;
+  color: #a8383f; /* 深玫瑰紅：壓在粉色愛心上仍清楚 */
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .wedding-day .heart-icon {
@@ -151,21 +152,20 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 2.2rem;
-  color: #f7dede; /* 淡粉色愛心底色 */
+  font-size: 2.6rem;
+  color: #f2b3b8; /* 玫瑰粉愛心底色，比一般日期明顯 */
   z-index: 1;
   pointer-events: none;
-  opacity: 0.85;
   /* 柔和的螢光閃爍：只改變光暈，不縮放 */
   animation: heartGlow 2.4s ease-in-out infinite;
 }
 
 @keyframes heartGlow {
   0%, 100% {
-    text-shadow: 0 0 3px rgba(232, 128, 138, 0.3);
+    text-shadow: 0 0 4px rgba(220, 110, 122, 0.45);
   }
   50% {
-    text-shadow: 0 0 10px rgba(232, 128, 138, 0.8), 0 0 3px rgba(255, 190, 196, 0.9);
+    text-shadow: 0 0 14px rgba(220, 110, 122, 0.9), 0 0 4px rgba(255, 180, 188, 1);
   }
 }
 
