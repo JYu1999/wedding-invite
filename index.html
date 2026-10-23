@@ -164,7 +164,7 @@
         <br>
         誠摯地邀請我們人生中各個階段重要的親友們<br>
         參與我們的婚禮、見證我們的幸福<br>
-        婚禮見♡<br>
+        ❤<br>
       </p>
 
       <div class="card-grid">
@@ -210,11 +210,11 @@
                 <span class="cal-day">18</span>
                 <span class="cal-day">19</span>
                 
-                <!-- 12月20日 大日子（帶愛心） -->
-                <span class="cal-day wedding-day">
-                <span class="heart-icon">♥</span>
+                <!-- 12月20日 大日子（帶愛心）：點一下冒出 +1 和小愛心（js/love-tap.js） -->
+                <button class="cal-day wedding-day" id="weddingDay" type="button" aria-label="12 月 20 日婚禮當天：點一下送上愛心">
+                <span class="heart-icon" aria-hidden="true">♥</span>
                 <span class="day-number">20</span>
-                </span>
+                </button>
 
                 <span class="cal-day">21</span>
                 <span class="cal-day">22</span>
@@ -242,6 +242,14 @@
           <h3>宴會場地</h3>
           <p class="highlight">福爾摩沙遊艇酒店 3F 水景廳</p>
           <p>臺南市安平區王城里安平路988號</p>
+          <!-- 場地地圖：先從台灣一路飛近飯店（js/venue-map.js），飛完淡入底下的 Google 地圖 -->
+          <div class="venue-map" id="venueMap">
+            <iframe class="venue-map-google" title="福爾摩沙遊艇酒店 Google 地圖" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3672.676445608065!2d120.1528844766018!3d22.998922479190302!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346dd9b680e0fcdb%3A0xbbd8ca575991685a!2z56aP54i-5pGp5rKZ6YGK6ImH6YWS5bqX!5e0!3m2!1szh-TW!2stw!4v1792767632515!5m2!1szh-TW!2stw" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+            <div class="venue-map-fly" id="venueMapFly" aria-hidden="true"></div>
+            <p class="venue-map-label" id="venueMapLabel" aria-hidden="true"></p>
+            <button class="venue-map-btn" id="venueMapSkip" type="button" hidden>略過 ›</button>
+            <button class="venue-map-btn" id="venueMapReplay" type="button" hidden>↺ 重新飛一次</button>
+          </div>
           <a href="https://maps.app.goo.gl/depKPe19pz6bouqS9" target="_blank" class="text-link">開啟 Google 地圖導航 ➔</a>
         </div>
       </div>
@@ -272,6 +280,11 @@
     <div class="lightbox-info">
       <p class="lightbox-caption" id="lightboxCaption"></p>
       <p class="lightbox-counter" id="lightboxCounter"></p>
+      <!-- 扭蛋圖鑑裡可以下載的照片才顯示 -->
+      <button class="lightbox-save" id="lightboxSave" type="button" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14"/></svg>
+        儲存照片
+      </button>
     </div>
 
     <!-- 第一次打開時的操作提示：手指左右滑的示範動畫 -->

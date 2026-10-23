@@ -6,7 +6,6 @@
 import { load, save, seen, markSeen } from '../storage.js';
 import { lockScroll, unlockScroll } from '../scroll-lock.js';
 import { haptic, HAPTIC } from '../fx/haptics.js';
-import { isTouch } from '../device.js';
 import { initBubble } from './bubble.js';
 import { collectSound } from './effects.js';
 
@@ -52,9 +51,6 @@ export function initCollection({ photos, lightbox, onPlay }) {
   };
   refreshBubble();
 
-  const caption = (photo) => (photo.downloadable
-    ? (isTouch() ? '長按照片可以儲存' : '在照片上按右鍵可以另存')
-    : '珍藏版，只能在這裡欣賞喔');
 
   const viewPhoto = (photo) => {
     const list = collected();
@@ -62,9 +58,10 @@ export function initCollection({ photos, lightbox, onPlay }) {
       src: p.src,
       alt: p.name,
       caption: p.name,
-      note: caption(p),
+      note: p.downloadable ? '' : '珍藏版，只能在這裡欣賞喔',
       protect: !p.downloadable,
       watermark: false,
+      download: p.downloadable ? p.file : '',
     })), list.indexOf(photo));
   };
 

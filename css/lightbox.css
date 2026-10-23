@@ -219,6 +219,52 @@
   line-height: 1;
 }
 
+/* 扭蛋圖鑑可以下載的照片：下方的「儲存照片」按鈕；照片再留短一點讓出位置 */
+.lightbox-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 9px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f6d48a, #e7b74f 55%, #c98f2e);
+  color: #4a2e10;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-shadow: none;
+  box-shadow: 0 6px 18px rgba(231, 183, 79, 0.3);
+  pointer-events: auto;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+}
+
+.lightbox-save:active {
+  transform: scale(0.96);
+}
+
+.lightbox-save[hidden] {
+  display: none;
+}
+
+.lightbox-save svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lightbox--save .lightbox-frame img {
+  max-height: 64vh;
+  max-height: 64dvh;
+}
+
 /* ---------- 第一次打開的操作提示：手指從右往左滑、留下一道光痕 ---------- */
 .lightbox-coach {
   position: absolute;
