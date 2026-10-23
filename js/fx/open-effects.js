@@ -24,6 +24,8 @@ function placeAt(overlay, className, x, y) {
   return el;
 }
 
+// 光芒收起後只是淡出，元素留到開場結束才拿掉：
+// 中途移除會在「翻面→推進」之間改動遮罩的合成層，部分 iPhone 會因此整層遮罩沒畫出來、透出首頁
 function showRays(overlay, x, y) {
   const rays = placeAt(overlay, 'fx-rays', x, y);
   const flash = placeAt(overlay, 'fx-flash', x, y);
@@ -32,10 +34,7 @@ function showRays(overlay, x, y) {
     flash.classList.add('on');
   });
   later(RAYS_END_MS, () => rays.classList.remove('on'));
-  later(RAYS_END_MS + 1200, () => {
-    rays.remove();
-    flash.remove();
-  });
+  return [rays, flash];
 }
 
 // 從中心擴散的金色光環
@@ -115,15 +114,22 @@ function chime() {
   tone(a, 1046.5, 0.42, 2, { gain: 0.05, attack: 0.15 });
 }
 
+// 回傳清除函式：開場結束（遮罩已隱藏）後再呼叫，把特效元素與畫布一次拿掉
 export function playOpenEffect(envelope) {
   const overlay = envelope.closest('#intro-overlay');
   const box = envelope.getBoundingClientRect();
   const cx = box.left + box.width / 2;
   const cy = box.top + box.height / 2;
-  const layer = new ParticleLayer(overlay);
+  const layer = new ParticleLayer(overlay, { persist: true });
 
   // 音效要在點擊當下建立，iOS 才允許播放
   chime();
-  showRays(overlay, cx, cy);
-  later(BURST_MS, () => burst(layer, cx, cy));
+  const fxEls = showRays(overlay, cx, cy);
+  const burstTimer = later(BURST_MS, () => burst(layer, cx, cy));
+
+  return () => {
+    clearTimeout(burstTimer);
+    fxEls.forEach((el) => el.remove());
+    layer.remove();
+  };
 }

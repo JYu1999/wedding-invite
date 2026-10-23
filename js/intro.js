@@ -26,10 +26,13 @@ export function initIntro({ onOpen, onEnter } = {}) {
   window.scrollTo(0, 0);
 
   let stage = 'idle';
+  let cleanupOpenFx = null;
 
   const finish = () => {
     overlay.classList.add('done');
     document.body.classList.remove('intro-active', 'intro-entering');
+    // 遮罩隱藏後才清掉開信特效，翻面與推進期間遮罩裡的圖層結構都不變動
+    cleanupOpenFx?.();
   };
 
   // 鏡頭以背面圓窗為中心指數放大，同時在遮罩上挖洞，洞裡就是首頁
@@ -78,7 +81,7 @@ export function initIntro({ onOpen, onEnter } = {}) {
       stage = 'opening';
       overlay.classList.add('opening');
       envelope.classList.add('open');
-      onOpen?.(envelope);
+      cleanupOpenFx = onOpen?.(envelope);
 
       setTimeout(() => envelope.classList.add('pulling'), PULL_START_MS);
       setTimeout(() => envelope.classList.add('pulled'), PULLED_MS);

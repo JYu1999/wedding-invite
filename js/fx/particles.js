@@ -1,4 +1,5 @@
 // 開信封特效用的輕量粒子系統：全螢幕畫布，粒子全部消失後自動停止動畫
+// persist: true 時粒子結束後畫布留在原地（只清空），由呼叫端在適當時機 remove()，避免中途變動圖層結構
 
 const MAX_DPR = 2;
 const FRAME_MS = 1000 / 60;
@@ -41,10 +42,11 @@ const SHAPES = {
 };
 
 export class ParticleLayer {
-  constructor(host) {
+  constructor(host, { persist = false } = {}) {
     this.canvas = document.createElement('canvas');
     this.canvas.className = 'fx-canvas';
     this.host = host;
+    this.persist = persist;
     this.ctx = this.canvas.getContext('2d');
     this.particles = [];
     this.painters = [];   // 其他每幀要畫的東西（光環等），回傳 false 代表結束
@@ -122,9 +124,16 @@ export class ParticleLayer {
     if (this.particles.length || this.painters.length) {
       requestAnimationFrame(this.frame);
     } else {
-      // 粒子都消失後把全螢幕畫布拿掉，不要一直佔著手機的繪圖記憶體
       this.running = false;
-      this.canvas.remove();
+      if (this.persist) ctx.clearRect(0, 0, this.width, this.height);
+      // 粒子都消失後把全螢幕畫布拿掉，不要一直佔著手機的繪圖記憶體
+      else this.canvas.remove();
     }
   };
+
+  remove() {
+    this.particles = [];
+    this.painters = [];
+    this.canvas.remove();
+  }
 }
