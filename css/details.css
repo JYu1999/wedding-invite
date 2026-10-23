@@ -179,8 +179,99 @@
   position: relative;
   z-index: 2;
 }
-/* 12/25 聖誕節以 emoji 取代日期 */
+/* 12/25 聖誕節以 emoji 取代日期，點下去開啟扭蛋機：
+   聖誕樹周圍有呼吸的光暈、偶爾晃一下，下方有「點我取得聖誕節禮物」小泡泡提示可以點 */
 .christmas-day {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
   font-size: 1.25rem;
   line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.christmas-day::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34px;
+  height: 34px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(127, 163, 122, 0.35), rgba(231, 183, 79, 0.18) 55%, transparent 72%);
+  animation: treeHalo 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.tree-icon {
+  position: relative;
+  display: inline-block;
+  transform-origin: 50% 85%;
+  transition: scale 0.2s ease;
+  animation: treeWiggle 4s ease-in-out infinite;
+}
+
+.christmas-day:hover .tree-icon,
+.christmas-day:focus-visible .tree-icon {
+  scale: 1.25;
+}
+
+/* 提示泡泡：在聖誕樹下方往右延伸（12/31 之後那幾格是空的），尖角朝上指著聖誕樹 */
+.tree-tip {
+  --tip-arrow: 14px;
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 4px);
+  z-index: 3;
+  translate: calc(var(--tip-arrow) * -1) 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #b35d50;
+  color: #ffffff;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  box-shadow: 0 3px 8px rgba(179, 93, 80, 0.35);
+  pointer-events: none;
+  animation: tipBob 1.8s ease-in-out infinite;
+}
+
+.tree-tip::before {
+  content: '';
+  position: absolute;
+  left: var(--tip-arrow);
+  bottom: 100%;
+  translate: -50% 0;
+  border: 5px solid transparent;
+  border-bottom-color: #b35d50;
+}
+
+@keyframes treeHalo {
+  0%, 100% { opacity: 0.5; scale: 0.85; }
+  50% { opacity: 1; scale: 1.15; }
+}
+
+@keyframes treeWiggle {
+  0%, 82%, 100% { rotate: 0deg; }
+  86% { rotate: -14deg; }
+  90% { rotate: 11deg; }
+  94% { rotate: -6deg; }
+}
+
+@keyframes tipBob {
+  0%, 100% { translate: calc(var(--tip-arrow) * -1) 0; }
+  50% { translate: calc(var(--tip-arrow) * -1) 3px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .christmas-day::before,
+  .tree-icon,
+  .tree-tip {
+    animation: none;
+  }
 }
