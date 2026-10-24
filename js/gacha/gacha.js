@@ -2,6 +2,7 @@
 // → 用滑鼠左鍵或手指刮掉照片上的銀漆 → 差不多刮乾淨就恭喜獲得照片，可以儲存、再扭一次或退出
 // 扭到的照片收進扭蛋圖鑑（collection.js），按「再扭一次／退出」前會先看到照片飛進圖鑑的泡泡
 // 每次隨機挑一張，可能重複；還沒收集到的照片比較容易抽到（config.js 的 LOTTERY_NEW_WEIGHT）
+// 扭到麻吉的照片（檔名有「麻吉」）時多一顆「帶麻吉去公園」，開啟小遊戲（js/maji-walk/）
 // 手機上每個步驟都有對應的震動；隨時可以按右上角 ✕、Esc 結束
 // 操作提示：第一次玩時直接用手指動畫示範要點哪裡、怎麼刮；做過一次之後，只有停著不動幾秒才再提示
 
@@ -12,6 +13,7 @@ import { isTouch } from '../device.js';
 import { seen, markSeen } from '../storage.js';
 import { lockScroll, unlockScroll } from '../scroll-lock.js';
 import { preloadPhoto, savePhoto } from '../save-photo.js';
+import { openMajiWalk, isMajiPhoto } from '../maji-walk/launch.js';
 
 const SPIN_MS = 1100;        // 轉把手、機器晃動，與 CSS .spinning 的動畫一致
 const DROP_MS = 1500;        // 扭蛋從出口掉出、彈一下、移到畫面中央
@@ -116,6 +118,7 @@ export function initGacha({ trigger, photos, collection, newWeight = 1 }) {
   const photo = $('gachaPhoto');
   const knob = $('gachaKnob');
   const saveBtn = $('gachaSave');
+  const walkBtn = $('gachaWalk');
   const againBtn = $('gachaAgain');
   const exitBtn = $('gachaExit');
   const badge = $('gachaBadge');
@@ -199,6 +202,7 @@ export function initGacha({ trigger, photos, collection, newWeight = 1 }) {
     knob.disabled = state !== 'machine';
     [againBtn, exitBtn].forEach((btn) => { btn.hidden = state !== 'won'; });
     saveBtn.hidden = state !== 'won' || !prize.downloadable;
+    walkBtn.hidden = state !== 'won' || !isMajiPhoto(prize);
     card.classList.toggle('view-only', !prize?.downloadable);
     badge.textContent = prize?.isNew ? 'NEW!' : '已收藏';
     badge.classList.toggle('owned', !prize?.isNew);
@@ -384,6 +388,8 @@ export function initGacha({ trigger, photos, collection, newWeight = 1 }) {
   saveBtn.addEventListener('click', () => {
     if (prize?.downloadable) savePhoto(prize);
   });
+  walkBtn.addEventListener('click', openMajiWalk);
+  tapHaptic(walkBtn);
   // 只能欣賞的照片：擋掉右鍵另存與長按選單
   photo.addEventListener('contextmenu', (e) => {
     if (!prize?.downloadable) e.preventDefault();

@@ -8,6 +8,7 @@ import { lockScroll, unlockScroll } from '../scroll-lock.js';
 import { haptic, HAPTIC } from '../fx/haptics.js';
 import { initBubble } from './bubble.js';
 import { collectSound } from './effects.js';
+import { openMajiWalk, isMajiPhoto } from '../maji-walk/launch.js';
 
 const STORE_KEY = 'collection';
 const FIRST_STASH_KEY = 'collection-first-stash';
@@ -62,6 +63,7 @@ export function initCollection({ photos, lightbox, onPlay }) {
       protect: !p.downloadable,
       watermark: false,
       download: p.downloadable ? p.file : '',
+      action: isMajiPhoto(p) ? { label: '帶麻吉去公園 🐾', run: openMajiWalk } : null,
     })), list.indexOf(photo));
   };
 

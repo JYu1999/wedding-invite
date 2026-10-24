@@ -250,6 +250,40 @@
   display: none;
 }
 
+/* 照片的附加動作（帶麻吉去公園）：草地綠，跟金色的儲存鈕並排 */
+.lightbox-action {
+  display: inline-flex;
+  align-items: center;
+  margin: 12px 0 0 8px;
+  padding: 9px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #9cc795, #6f9a69);
+  color: #ffffff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-shadow: none;
+  box-shadow: 0 6px 18px rgba(111, 154, 105, 0.35);
+  pointer-events: auto;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+}
+
+.lightbox-save[hidden] + .lightbox-action {
+  margin-left: 0;
+}
+
+.lightbox-action:active {
+  transform: scale(0.96);
+}
+
+.lightbox-action[hidden] {
+  display: none;
+}
+
 .lightbox-save svg {
   width: 17px;
   height: 17px;
