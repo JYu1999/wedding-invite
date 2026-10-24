@@ -2,6 +2,13 @@
 /* 圖層：泡泡 1001（音樂播放器之上、各種全螢幕視窗之下）→ 成就清單 10015 → 通知 10020
    清單與通知可能疊在扭蛋機、燈箱、小遊戲（10010）上面：在那裡完成成就、點通知就直接打開清單 */
 
+/* 獎章與泡泡上的圖案都是 emoji：iOS Safari 對 emoji 套用 CSS filter（drop-shadow、grayscale）時，
+   在可捲動、背景模糊的視窗裡有時整個畫不出來，所以這裡的 emoji 一律不用 filter，陰影改用 text-shadow */
+.ach-bubble .bubble-icon,
+.ach-medal-icon {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+}
+
 /* ---------- 浮動泡泡：共用樣式在 bubble.css ---------- */
 .ach-bubble {
   z-index: 1001;
@@ -10,7 +17,7 @@
 .ach-bubble .bubble-icon {
   font-size: 22px;
   line-height: 1;
-  filter: drop-shadow(0 0 6px rgba(246, 213, 138, 0.55));
+  text-shadow: 0 0 8px rgba(246, 213, 138, 0.6);
 }
 
 /* ---------- 獎章：圓形徽章，材質分銅、銀、金、彩虹 ---------- */
@@ -45,7 +52,7 @@
 .ach-medal-icon {
   font-size: 25px;
   line-height: 1;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
 }
 
 .ach-medal--silver {
@@ -63,7 +70,7 @@
   --rim: #ffffff;
 }
 
-/* 還沒完成：灰色、半透明 */
+/* 還沒完成：灰色、半透明；圖案變成淡淡的白色剪影（文字本身透明，只留同樣形狀的白色陰影） */
 .ach-medal.locked {
   --medal: linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06));
   --rim: rgba(255, 255, 255, 0.3);
@@ -71,8 +78,8 @@
 }
 
 .ach-medal.locked .ach-medal-icon {
-  filter: grayscale(1);
-  opacity: 0.35;
+  color: transparent;
+  text-shadow: 0 0 0 rgba(251, 244, 232, 0.32);
 }
 
 .ach-medal.locked::after {
