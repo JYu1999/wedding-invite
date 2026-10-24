@@ -6,6 +6,7 @@ import { createFlakeSprites, createSakuraSprites, createLeafSprites } from './sp
 import { SEASONS } from './seasons.js';
 import { SnowPile } from './pile.js';
 import { increment } from '../achievements/progress.js';
+import { homeTime } from '../scroll-lock.js';
 
 const MAX_DPR = 2;
 const FRAME_MS = 1000 / 60;      // 速度以 60fps 為基準，高更新率螢幕不會飄得比較快
@@ -109,10 +110,10 @@ export function initSnow({ canvas, area }) {
 
   // 依螢幕寬度決定粒子數量（手機版適度減少，避免耗電）
   const count = world.width < MOBILE_BREAKPOINT ? 35 : 65;
-  let seasonStart = performance.now();
+  let seasonStart = homeTime();
   let seasonCycles = Infinity;    // 開場拆信封時不算，進入首頁（restartSeasons）才開始計算
   let snowArmed = false;
-  const currentSeason = (now) => SEASONS[Math.floor((now - seasonStart) / SEASON_MS) % SEASONS.length];
+  const currentSeason = (now) => SEASONS[Math.floor((homeTime(now) - seasonStart) / SEASON_MS) % SEASONS.length];
   const particles = Array.from({ length: count }, (_, i) => new Particle(i / count));
   particles.forEach((p) => p.assign(SEASONS[0], world, sprites, { initial: true }));
 
@@ -167,7 +168,8 @@ export function initSnow({ canvas, area }) {
 
     const season = currentSeason(now);
     // 照片捲出畫面時動畫暫停，捲回來才補記；一次跳過好幾輪也只算一次
-    const cycle = Math.floor((now - seasonStart) / (SEASON_MS * SEASONS.length));
+    // 季節用首頁的時鐘：扭蛋機、小遊戲等全螢幕視窗蓋住首頁的期間不算
+    const cycle = Math.floor((homeTime(now) - seasonStart) / (SEASON_MS * SEASONS.length));
     if (cycle > seasonCycles) {
       seasonCycles = cycle;
       increment('seasonCycles');
@@ -232,7 +234,7 @@ export function initSnow({ canvas, area }) {
   return {
     // 從冬天重新開始輪替（進入首頁時呼叫）
     restartSeasons() {
-      seasonStart = performance.now();
+      seasonStart = homeTime();
       seasonCycles = 0;
     },
   };
