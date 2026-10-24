@@ -66,5 +66,5 @@ export const ACHIEVEMENTS = [
   { id: 'snow-3', name: '鏟雪小幫手', desc: '把照片底下的積雪清乾淨 3 次', points: 15, icon: '⛄', tier: 'bronze', stat: 'snowCleared', goal: 3 },
   { id: 'seasons-3', name: '四季輪迴', desc: '在首頁經歷完整的春夏秋冬 3 次', points: 10, icon: '🌸', tier: 'silver', stat: 'seasonCycles', goal: 3 },
   { id: 'daynight-3', name: '日日夜夜', desc: '在首頁經歷完整的白天與夜晚 3 次', points: 20, icon: '🌙', tier: 'silver', stat: 'dayNightCycles', goal: 3 },
-  { id: 'music-full', name: '知音', desc: '完整聽完一首背景音樂〈超越時空的思念〉', points: 20, icon: '🎵', tier: 'silver', stat: 'songPlays', goal: 1 },
+  { id: 'music-full', name: '知音', desc: '從頭到尾連續聽完一首背景音樂〈超越時空的思念〉', points: 20, icon: '🎵', tier: 'silver', stat: 'songPlays', goal: 1 },
 ];
