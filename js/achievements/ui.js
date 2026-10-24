@@ -223,7 +223,8 @@ export function initAchievements() {
   };
 
   // 泡泡第一次出現時旁邊跳出介紹，只出現一次；已經點開過成就清單的人就不用了
-  // 泡泡在扭蛋機、燈箱、小遊戲底下看不到（第一個成就常常是在扭蛋機裡拿到的），等回到首頁再說
+  // 不管第一個拿到的是哪個成就都一樣：在首頁拿到（清積雪、四季、點愛心⋯⋯）就直接介紹；
+  // 在扭蛋機、燈箱、小遊戲裡拿到的話，泡泡被蓋在底下看不到，等回到首頁再介紹
   const introduce = (delay) => {
     if (seen(WELCOME_KEY) || seen(INTRO_KEY)) return;
     setTimeout(() => {
