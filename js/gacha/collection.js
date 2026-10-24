@@ -33,8 +33,6 @@ export function initCollection({ photos, lightbox, onPlay }) {
   const owned = new Set(Array.isArray(saved.files) ? saved.files : []);
   const seenFiles = new Set(Array.isArray(saved.seen) ? saved.seen : []);
   const persist = () => save(STORE_KEY, { files: [...owned], seen: [...seenFiles] });
-  // 成就上線前就扭到的照片也算進收集成就，不另外跳通知
-  if (owned.size) markItem('photos', [...owned], { quiet: true });
 
   let gachaOpen = false;
 

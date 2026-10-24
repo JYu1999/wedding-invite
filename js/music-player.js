@@ -1,7 +1,14 @@
 // 背景音樂與黑膠唱片播放器
+// 實際播放的時間累積滿一整首歌就記一次「聽完整首」（給成就用）；音樂是循環播放，不會有播完的事件，所以自己算
+
+import { increment } from './achievements/progress.js';
 
 // 首頁底部離視窗頂端小於此距離時，播放器浮現
 const SHOW_AFTER_HERO_BOTTOM_PX = 350;
+// timeupdate 大約每 0.25 秒一次；兩次之間跳太多（拖曳進度、載入卡住）不算進播放時間
+const MAX_TICK_S = 2;
+// 最後一次 timeupdate 不會剛好落在歌曲結尾，差這麼一點也算聽完
+const END_SLACK_S = 1;
 
 export function initMusicPlayer() {
   const audio = document.getElementById('bgm');
@@ -18,6 +25,23 @@ export function initMusicPlayer() {
   };
   audio.addEventListener('play', () => setPlaying(true));
   audio.addEventListener('pause', () => setPlaying(false));
+
+  // 累積實際聽了幾秒：暫停再繼續也接著算，循環回到開頭時把跨過結尾的那一段也算進去
+  let listened = 0;
+  let lastTime = audio.currentTime;
+  audio.addEventListener('timeupdate', () => {
+    const now = audio.currentTime;
+    const { duration } = audio;
+    let delta = now - lastTime;
+    if (delta < 0 && duration) delta += duration;
+    lastTime = now;
+    if (audio.paused || !(delta > 0) || delta > MAX_TICK_S * audio.playbackRate || !duration) return;
+    listened += delta;
+    if (listened >= duration - END_SLACK_S) {
+      listened = 0;
+      increment('songPlays');
+    }
+  });
 
   const play = () => {
     // 瀏覽器可能擋下自動播放，失敗時保留手動播放

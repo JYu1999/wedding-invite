@@ -15,6 +15,7 @@ import { initCollection } from './gacha/collection.js';
 import { initVenueMap } from './venue-map.js';
 import { initLoveTap } from './love-tap.js';
 import { initAchievements } from './achievements/ui.js';
+import { creditEarlierProgress } from './achievements/legacy.js';
 
 const music = initMusicPlayer();
 
@@ -39,6 +40,8 @@ initIntro({
 initCountdown(WEDDING_DATE);
 initLoveTap(document.getElementById('weddingDay'));
 initVenueMap();
+// 成就上線前就在玩的人：先補記以前的紀錄（不跳通知）
+creditEarlierProgress();
 // 成就清單、燈箱、扭蛋圖鑑、扭蛋機都會處理 Esc，要依這個順序初始化：疊在最上面的先處理
 const achievements = initAchievements();
 const lightbox = initLightbox({ watermark: () => createWatermark(WATERMARK) });

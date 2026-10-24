@@ -4,6 +4,7 @@
 //   recordMax(stat, value) 只留最高紀錄：遛麻吉走了幾公尺
 //   markItem(stat, key)    收集一組不重複的項目：扭到的照片、看過的婚紗照
 // 解鎖時通知 onUnlock 註冊的對象（ui.js 跳出通知、更新積分）；quiet 的解鎖不跳通知，只在泡泡上亮紅點
+// 三個函式都可以加 { quiet: true }：補記成就上線前就有的紀錄時用（見 legacy.js）
 
 import { load, save } from '../storage.js';
 import { ACHIEVEMENTS } from './list.js';
@@ -43,18 +44,18 @@ if (ACHIEVEMENTS.some((a) => !isUnlocked(a) && progressOf(a) >= a.goal)) {
   new Set(ACHIEVEMENTS.map((a) => a.stat)).forEach((stat) => check(stat, true));
 }
 
-export function increment(stat, n = 1) {
+export function increment(stat, n = 1, { quiet = false } = {}) {
   stats[stat] = (Number(stats[stat]) || 0) + n;
-  check(stat);
+  check(stat, quiet);
 }
 
-export function recordMax(stat, v) {
-  if (v <= (Number(stats[stat]) || 0)) return;
+export function recordMax(stat, v, { quiet = false } = {}) {
+  if (!(v > (Number(stats[stat]) || 0))) return;
   stats[stat] = v;
-  check(stat);
+  check(stat, quiet);
 }
 
-// keys 可以是一個或一組；quiet：補記以前就有的項目（例如成就上線前已經扭到的照片），不跳通知
+// keys 可以是一個或一組
 export function markItem(stat, keys, { quiet = false } = {}) {
   const items = new Set(Array.isArray(stats[stat]) ? stats[stat] : []);
   const before = items.size;
