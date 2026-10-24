@@ -64,6 +64,15 @@ export function createInput(surface, joy) {
   surface.addEventListener('pointerup', release);
   surface.addEventListener('pointercancel', release);
 
+  // iPhone：手指按住拖曳就是長按，Safari 會跳出「選取」選單、放大鏡或選起文字，擋住遊戲
+  // 光靠 CSS 的 user-select: none 擋不完，直接取消觸控的預設動作；按鈕要留著點擊，不擋
+  // 只取消 touch 事件，上面的 pointer 事件照樣會送來
+  surface.addEventListener('touchstart', (e) => {
+    if (!e.target.closest('button')) e.preventDefault();
+  }, { passive: false });
+  surface.addEventListener('selectstart', (e) => e.preventDefault());
+  surface.addEventListener('contextmenu', (e) => e.preventDefault());
+
   const onKey = (e) => {
     if (!enabled || !KEYS[e.code]) return;
     e.preventDefault();

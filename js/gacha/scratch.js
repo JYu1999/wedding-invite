@@ -1,10 +1,10 @@
-// 刮刮樂：照片上蓋一層銀漆畫布，用滑鼠左鍵或手指刮開，刮掉大部分後通知外部，剩下的銀漆淡出
+// 刮刮樂：照片上蓋一層銀漆畫布，用滑鼠左鍵或手指刮開，刮掉一半後通知外部，剩下的銀漆淡出
 
 import { createFlakeSprites } from '../snow/sprites.js';
 
 const MAX_DPR = 2;
 const BRUSH_RATIO = 0.1;    // 筆刷粗細：卡片短邊的比例
-const DONE_RATIO = 0.7;    // 刮掉這麼多就算「差不多刮乾淨」
+const DONE_RATIO = 0.5;    // 刮掉一半就夠了，剩下的銀漆自己淡出，不用刮得很乾淨
 const CHECK_MS = 150;       // 計算進度的間隔，避免每次移動都讀整張畫布
 const SAMPLE_STEP = 6;      // 計算進度時每隔幾個像素取樣一次
 const FLAKE_GAP_PX = 64;    // 銀漆上雪花暗紋的間距
