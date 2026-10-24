@@ -1,17 +1,14 @@
-// 扭蛋圖鑑的浮動泡泡：像舊 iPhone 的「輔助觸控」小圓鈕
+// 浮動泡泡：像舊 iPhone 的「輔助觸控」小圓鈕，扭蛋圖鑑（gacha/collection.js）與成就（achievements/ui.js）共用
 // 可以拖到畫面任何地方，放開後貼齊最近的左右邊緣並記住位置；一陣子沒碰就變半透明，不擋畫面
-// 顯示收集進度（例如 3/23），有還沒看過的新照片時右上角亮紅點；點一下開啟圖鑑
+// 中間一行小字（例如收集進度 3/23），有還沒看過的新東西時右上角亮紅點；點一下開啟對應的清單
+// 泡泡裡要有 .bubble-icon、.bubble-count、.bubble-toast（見 index.html），樣式在 css/bubble.css
 
-import { load, save } from '../storage.js';
+import { load, save } from './storage.js';
 
-const POS_KEY = 'bubble-position';
 const EDGE_PX = 10;           // 貼齊邊緣時留的距離
 const DRAG_START_PX = 6;      // 移動超過這個距離才算拖曳，以下當作點擊
 const IDLE_MS = 3000;         // 多久沒碰就變半透明
-const SNAP_MS = 300;          // 與 CSS .album-bubble.snapping 的 transition 一致
-
-// 預設在左上角：扭蛋機的 ✕ 在右上角，中間是照片卡，左上角最不會擋到操作
-const DEFAULT_POS = { side: 'left', y: 0 };
+const SNAP_MS = 300;          // 與 CSS .float-bubble.snapping 的 transition 一致
 
 // 量出瀏海、底部橫條佔掉的高度，泡泡不要躲到那底下
 function safeInsets() {
@@ -24,13 +21,13 @@ function safeInsets() {
   return insets;
 }
 
-export function initBubble({ onTap }) {
-  const el = document.getElementById('albumBubble');
-  const countEl = document.getElementById('albumBubbleCount');
-  const toastEl = document.getElementById('albumBubbleToast');
+// posKey：記住位置用的名稱；defaultPos：{ side: 'left' | 'right', y: 0～1（可移動範圍由上到下的比例） }
+export function initBubble({ el, posKey, defaultPos, onTap }) {
   if (!el) return null;
+  const countEl = el.querySelector('.bubble-count');
+  const toastEl = el.querySelector('.bubble-toast');
 
-  let pos = { ...DEFAULT_POS, ...load(POS_KEY, {}) };
+  let pos = { ...defaultPos, ...load(posKey, {}) };
   let drag = null;
   let idleTimer = 0;
   let toastTimer = 0;
@@ -99,7 +96,7 @@ export function initBubble({ onTap }) {
       y: bottom > top ? (r.top - top) / (bottom - top) : 0,
     };
     pos.y = Math.min(Math.max(pos.y, 0), 1);
-    save(POS_KEY, pos);
+    save(posKey, pos);
     el.classList.add('snapping');
     place();
     setTimeout(() => el.classList.remove('snapping'), SNAP_MS);
@@ -115,10 +112,11 @@ export function initBubble({ onTap }) {
 
   window.addEventListener('resize', place);
 
-  const setProgress = (count, total, unseen) => {
-    countEl.textContent = `${count}/${total}`;
-    el.classList.toggle('has-new', unseen > 0);
-    el.setAttribute('aria-label', `開啟扭蛋圖鑑，已收集 ${count} / ${total} 張${unseen ? `，有 ${unseen} 張新照片` : ''}`);
+  // text：泡泡上的小字；hasNew：亮紅點；label：給螢幕閱讀器的說明
+  const setInfo = ({ text, hasNew, label }) => {
+    countEl.textContent = text;
+    el.classList.toggle('has-new', hasNew);
+    el.setAttribute('aria-label', label);
   };
 
   const setVisible = (visible) => {
@@ -130,13 +128,13 @@ export function initBubble({ onTap }) {
     }
   };
 
-  // 照片飛進泡泡的落點：泡泡中央的小扭蛋
+  // 東西飛進泡泡的落點：泡泡中央的圖示
   const target = () => {
     const r = el.querySelector('.bubble-icon').getBoundingClientRect();
     return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
   };
 
-  // 照片收進來時泡泡「吞」一下，旁邊跳出一句提示
+  // 收進東西時泡泡「吞」一下；旁邊跳出一句提示
   const gulp = () => {
     wake();
     el.classList.remove('gulp');
@@ -152,5 +150,5 @@ export function initBubble({ onTap }) {
     toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms);
   };
 
-  return { setProgress, setVisible, target, gulp, toast };
+  return { setInfo, setVisible, target, gulp, toast };
 }

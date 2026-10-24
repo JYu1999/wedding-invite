@@ -33,7 +33,9 @@ css/
   lightbox.css          全螢幕看照片的燈箱、第一次打開的滑動提示
   music-player.css      黑膠唱片音樂播放器
   gacha.css             聖誕扭蛋機、扭蛋、刮刮樂照片卡、手指操作提示
-  album.css             扭蛋圖鑑、浮動泡泡、照片飛進泡泡
+  bubble.css            浮動泡泡（扭蛋圖鑑與成就共用）
+  album.css             扭蛋圖鑑、照片飛進泡泡
+  achievements.css      成就清單、獎章、完成成就的通知
   maji-walk.css         「帶麻吉去公園」小遊戲的畫面（分數、提示、教學卡、結算）
 js/
   main.js               進入點，初始化各模組
@@ -49,7 +51,8 @@ js/
   gallery.js            產生照片牆、浮水印
   lightbox.js           燈箱：照片跟著手指滑動切換、上下滑關閉，婚紗剪影與扭蛋圖鑑共用
   device.js             判斷 iPhone、是否用手指操作
-  storage.js            存在訪客瀏覽器裡的資料（扭蛋圖鑑、看過的提示）
+  storage.js            存在訪客瀏覽器裡的資料（扭蛋圖鑑、成就進度、看過的提示）
+  bubble.js             浮動泡泡（可拖曳、貼齊邊緣），扭蛋圖鑑與成就共用
   scroll-lock.js        全螢幕視窗疊好幾層時的頁面捲動鎖定
   reveal.js             滾動淡入
   gacha/
@@ -57,7 +60,11 @@ js/
     scratch.js          刮刮樂銀漆畫布與刮除進度
     effects.js          扭蛋機的音效、扭蛋打開的金粉、中獎彩帶
     collection.js       扭蛋圖鑑：記住扭到哪些照片、收集進度、照片飛進泡泡
-    bubble.js           扭蛋圖鑑的浮動泡泡（可拖曳、貼齊邊緣）
+  achievements/         成就：做了某些事就解鎖、加積分，婚禮當天用積分兌換小禮物
+    list.js             成就清單：名稱、內容、分數、獎章、達成條件
+    progress.js         記錄訪客做過的事、檢查並解鎖成就
+    ui.js               成就的浮動泡泡、成就清單、完成時的通知
+    legacy.js           成就上線前就在玩的人：把當時已有的紀錄（扭到的照片、遛麻吉最佳紀錄）補記進成就
   maji-walk/            「帶麻吉去公園」小遊戲：扭到或在圖鑑看麻吉的照片時，按「帶麻吉去公園」開始
     launch.js           入口：按下去才載入 3D 引擎與遊戲、暫停首頁音樂；判斷是不是麻吉的照片
     game.js             遊戲本體：牽繩、麻吉的脾氣、撞到扣命、道具、教學、結算
@@ -83,5 +90,7 @@ js/
 - **麻吉的照片**：檔名有「麻吉」的扭蛋照片，扭到時與在圖鑑裡看大圖時會多一顆「帶麻吉去公園」按鈕，開啟小遊戲。新增麻吉的照片時，檔名記得包含「麻吉」。
 - **調整小遊戲**：`js/maji-walk/game.js` 開頭的常數，例如公園距離 `GOAL`、命數 `LIVES`、牽繩長度 `LEASH`、無敵時間 `STAR_TIME`；麻吉各種脾氣在 `MOODS`。
 - **調整扭到新照片的機率**：`js/config.js` 的 `LOTTERY_NEW_WEIGHT`，還沒收集到的照片被抽中的機會是收集過的幾倍；設成 `1` 就是完全隨機。
+- **新增或調整成就**：`js/achievements/list.js`，每個成就有名稱 `name`、內容 `desc`、分數 `points`、獎章圖案 `icon` 與材質 `tier`（`bronze`／`silver`／`gold`／`rainbow`），以及看哪一項紀錄 `stat`、達到多少 `goal`。需要新的紀錄時，在對應的功能裡用 `js/achievements/progress.js` 的 `increment`（次數加一）、`recordMax`（最高紀錄）、`markItem`（收集不重複的項目）記下來。
+  - **網站上線後，已經有的成就一律不能改、不能刪，只能新增**：訪客只記得完成了哪些成就，積分是用清單即時加總的，改分數、改條件或刪掉都會讓已經完成的人分數對不起來（詳細原因寫在 `list.js` 開頭）。兌換獎品的說明是同一個檔案的 `REDEEM_NOTE`。
 - **修改浮水印文字**：`js/config.js` 的 `WATERMARK`。
 - **修改倒數目標時間**：`js/config.js` 的 `WEDDING_DATE`。

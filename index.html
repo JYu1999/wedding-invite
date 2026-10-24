@@ -25,7 +25,9 @@
   <link rel="stylesheet" href="css/lightbox.css">
   <link rel="stylesheet" href="css/music-player.css">
   <link rel="stylesheet" href="css/gacha.css">
+  <link rel="stylesheet" href="css/bubble.css">
   <link rel="stylesheet" href="css/album.css">
+  <link rel="stylesheet" href="css/achievements.css">
   <link rel="stylesheet" href="css/maji-walk.css">
   <!-- 日夜循環配色：要放最後，蓋過各區塊的白天配色 -->
   <link rel="stylesheet" href="css/day-night.css">
@@ -382,11 +384,49 @@
   </div>
 
   <!-- 扭蛋圖鑑的浮動泡泡：可以拖曳，點開圖鑑 -->
-  <button class="album-bubble" id="albumBubble" type="button" aria-label="開啟扭蛋圖鑑">
+  <button class="float-bubble album-bubble" id="albumBubble" type="button" aria-label="開啟扭蛋圖鑑">
     <span class="bubble-icon" aria-hidden="true"></span>
-    <span class="bubble-count" id="albumBubbleCount" aria-hidden="true">0/0</span>
-    <span class="bubble-toast" id="albumBubbleToast" aria-live="polite"></span>
+    <span class="bubble-count" aria-hidden="true">0/0</span>
+    <span class="bubble-toast" aria-live="polite"></span>
   </button>
+
+  <!-- 成就：全部成就與目前積分，清單由 js/achievements/ui.js 依 js/achievements/list.js 產生 -->
+  <div class="ach" id="ach" role="dialog" aria-modal="true" aria-labelledby="achTitle" hidden>
+    <div class="ach-sheet">
+      <button class="album-close" id="achClose" type="button" aria-label="關閉成就">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <p class="album-eyebrow">ACHIEVEMENTS</p>
+      <h2 class="album-title" id="achTitle">成就</h2>
+      <p class="ach-points"><span id="achPoints">0</span><small>分</small></p>
+      <p class="ach-done">已完成 <span id="achDone">0</span> / <span id="achTotal">0</span> 個成就</p>
+      <!-- 第一次打開時的說明：按「知道了」收起，之後點 ⓘ 可以再看一次 -->
+      <div class="ach-intro" id="achIntro" hidden>
+        <p class="ach-intro-title">成就怎麼玩？</p>
+        <ol class="ach-intro-steps">
+          <li><span aria-hidden="true">🔍</span>在網站裡到處逛逛、玩扭蛋和小遊戲，完成任務就能解鎖成就</li>
+          <li><span aria-hidden="true">🏅</span>每個成就都有分數，解鎖越多、積分越高</li>
+          <li><span aria-hidden="true">🎁</span>婚禮當天出示這個畫面，就能用積分兌換小禮物</li>
+        </ol>
+        <button class="gacha-btn gacha-btn--primary" id="achIntroOk" type="button">知道了</button>
+      </div>
+      <p class="ach-redeem" id="achRedeemRow">
+        <span id="achRedeem"></span>
+        <button class="ach-help" id="achHelp" type="button" aria-label="成就怎麼玩？">ⓘ</button>
+      </p>
+      <ul class="ach-list" id="achList"></ul>
+    </div>
+  </div>
+
+  <!-- 成就的浮動泡泡：顯示目前積分，點開成就清單 -->
+  <button class="float-bubble ach-bubble" id="achBubble" type="button" aria-label="開啟成就">
+    <span class="bubble-icon" aria-hidden="true">🏆</span>
+    <span class="bubble-count" aria-hidden="true">0 分</span>
+    <span class="bubble-toast" aria-live="polite"></span>
+  </button>
+
+  <!-- 完成成就時從上方滑下來的通知 -->
+  <div class="ach-pop-layer" id="achPopLayer" aria-live="polite"></div>
 
   <!-- ==================== 6. 頁尾 ==================== -->
   <footer>

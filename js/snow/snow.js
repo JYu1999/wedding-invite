@@ -1,9 +1,11 @@
 // 首頁照片上的四季景色：每 10 秒換一季（雪花、櫻花、流星、楓葉），只在照片範圍內飄落，
 // 落到底部後一律堆成積雪；滑鼠經過或手機點擊積雪會讓它慢慢融化
+// 成就：把堆起來的積雪清乾淨記一次「清積雪」；四季每輪完一圈記一次「四季輪迴」
 
 import { createFlakeSprites, createSakuraSprites, createLeafSprites } from './sprites.js';
 import { SEASONS } from './seasons.js';
 import { SnowPile } from './pile.js';
+import { increment } from '../achievements/progress.js';
 
 const MAX_DPR = 2;
 const FRAME_MS = 1000 / 60;      // 速度以 60fps 為基準，高更新率螢幕不會飄得比較快
@@ -21,6 +23,10 @@ const MELT_RATE = 0.18;          // 每幀中心點融化的高度 (px)，滿高
 const MELT_RADIUS_MOUSE = 46;
 const MELT_RADIUS_TOUCH = 60;
 const TOUCH_MELT_MS = 1500;      // 手機點一下持續融化的時間
+
+// 清積雪：積雪堆到 CLEAR_ARM 以上之後，被融到只剩 CLEAR_DONE 以下，算清乾淨一次
+const CLEAR_ARM = 0.12;     // 約堆了半分鐘的雪
+const CLEAR_DONE = 0.04;
 
 // 照片上的一顆飄落物：外觀與動作由所屬季節決定（seasons.js）
 // slot 是它在整批粒子裡的固定位置（0～1），季節的 share 決定前多少比例會出場
@@ -104,6 +110,8 @@ export function initSnow({ canvas, area }) {
   // 依螢幕寬度決定粒子數量（手機版適度減少，避免耗電）
   const count = world.width < MOBILE_BREAKPOINT ? 35 : 65;
   let seasonStart = performance.now();
+  let seasonCycles = Infinity;    // 開場拆信封時不算，進入首頁（restartSeasons）才開始計算
+  let snowArmed = false;
   const currentSeason = (now) => SEASONS[Math.floor((now - seasonStart) / SEASON_MS) % SEASONS.length];
   const particles = Array.from({ length: count }, (_, i) => new Particle(i / count));
   particles.forEach((p) => p.assign(SEASONS[0], world, sprites, { initial: true }));
@@ -138,6 +146,10 @@ export function initSnow({ canvas, area }) {
     if (pointer.y < surfaceY - pointer.radius) return;
 
     const melted = pile.melt(pointer.x, pointer.radius, MELT_RATE * dt);
+    if (snowArmed && melted > 0 && pile.fullness() <= CLEAR_DONE) {
+      snowArmed = false;
+      increment('snowCleared');
+    }
     if (melted > 0.05 && Math.random() < 0.5) {
       const x = pointer.x + (Math.random() - 0.5) * pointer.radius;
       droplets.push(new Droplet(x, world.groundY - pile.heightAt(x)));
@@ -154,6 +166,12 @@ export function initSnow({ canvas, area }) {
     const { width, height, groundY } = world;
 
     const season = currentSeason(now);
+    // 照片捲出畫面時動畫暫停，捲回來才補記；一次跳過好幾輪也只算一次
+    const cycle = Math.floor((now - seasonStart) / (SEASON_MS * SEASONS.length));
+    if (cycle > seasonCycles) {
+      seasonCycles = cycle;
+      increment('seasonCycles');
+    }
 
     for (const p of particles) {
       // 換季：還沒出場的直接換成新季節；飄在空中的先淡出，消失後再以新季節的樣子出現
@@ -185,6 +203,7 @@ export function initSnow({ canvas, area }) {
 
     meltUnderPointer(now, dt);
     pile.settle();
+    if (pile.fullness() >= CLEAR_ARM) snowArmed = true;
 
     for (let i = droplets.length - 1; i >= 0; i--) {
       droplets[i].update(dt);
@@ -214,6 +233,7 @@ export function initSnow({ canvas, area }) {
     // 從冬天重新開始輪替（進入首頁時呼叫）
     restartSeasons() {
       seasonStart = performance.now();
+      seasonCycles = 0;
     },
   };
 }

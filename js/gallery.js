@@ -1,5 +1,8 @@
 // 婚紗剪影：最喜歡的一張置頂放大，其餘照片直式並排、橫式另成一列（都不裁切），加上浮水印，點擊開啟燈箱（lightbox.js）
 // 照片只能欣賞，不提供儲存：擋掉右鍵另存、拖曳與長按選單
+// 在燈箱裡看過的照片記下來，全部看過就完成「婚紗鑑賞家」成就
+
+import { markItem } from './achievements/progress.js';
 
 // 每種螢幕寬度的排列樣式，照片依序重複套用：
 // 手機兩欄：直、直一列，橫式獨佔一列；電腦三欄：三張直式一列、三張橫式一列
@@ -42,6 +45,7 @@ export function createWatermark({ names, script }) {
 function createItem({ src, alt, shape, featured = false }, watermark) {
   const item = document.createElement('figure');
   item.className = `gallery-item gallery-item--${featured ? 'featured' : shape}`;
+  item.dataset.src = src;
 
   const img = document.createElement('img');
   img.src = src;
@@ -85,7 +89,7 @@ export function initGallery({ featured, photos, watermark, lightbox }) {
       .map(({ el }) => el);
     const items = visual.map((el) => {
       const img = el.querySelector('img');
-      return { src: img.src, alt: img.alt };
+      return { src: img.src, alt: img.alt, onShow: () => markItem('gallery', el.dataset.src) };
     });
     lightbox.open(items, visual.indexOf(item));
   });

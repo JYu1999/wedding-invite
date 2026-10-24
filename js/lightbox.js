@@ -2,6 +2,7 @@
 // 手指按著照片左右拖，下一張跟著從旁邊滑進來、目前這張縮小淡出；放開時依拖的距離與速度決定切換或彈回
 // 上下拖曳照片可以關閉（像手機相簿）；也可以用 ‹ › 按鈕、鍵盤方向鍵切換，按 ✕、Esc 或點背景關閉
 // 照片設定 download（檔名）時，下方多一顆「儲存照片」按鈕；設定 action 時再多一顆自訂按鈕（例如帶麻吉去公園）
+// 照片設定 onShow 時，每次切到這張都會呼叫（婚紗剪影用來記錄看過哪幾張）
 // 第一次打開時疊一層操作提示，開始滑動或幾秒後自動消失；只出現這一次，之後想慢慢欣賞照片也不會再被打擾
 
 import { lockScroll, unlockScroll } from './scroll-lock.js';
@@ -134,6 +135,7 @@ export function initLightbox({ watermark } = {}) {
       actionBtn.hidden = !item.action;
       actionBtn.textContent = item.action?.label ?? '';
     }
+    item.onShow?.();
   };
 
   const hideCoach = () => {
@@ -167,7 +169,7 @@ export function initLightbox({ watermark } = {}) {
     busy = false;
   };
 
-  // items：[{ src, alt, caption?, note?, protect?, watermark?, download?, action? }]
+  // items：[{ src, alt, caption?, note?, protect?, watermark?, download?, action?, onShow? }]
   // protect 預設 true：擋掉右鍵另存與長按選單；watermark: false 不顯示浮水印；download：儲存時的檔名
   // action：{ label, run }，照片下方多一顆按鈕，按下時呼叫 run
   const open = (list, i = 0) => {

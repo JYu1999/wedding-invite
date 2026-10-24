@@ -1,0 +1,439 @@
+/* ==================== 成就：浮動泡泡、成就清單、完成成就的通知 ==================== */
+/* 圖層：泡泡 1001（音樂播放器之上、各種全螢幕視窗之下）→ 成就清單 10015 → 通知 10020
+   清單與通知可能疊在扭蛋機、燈箱、小遊戲（10010）上面：在那裡完成成就、點通知就直接打開清單 */
+
+/* ---------- 浮動泡泡：共用樣式在 bubble.css ---------- */
+.ach-bubble {
+  z-index: 1001;
+}
+
+.ach-bubble .bubble-icon {
+  font-size: 22px;
+  line-height: 1;
+  filter: drop-shadow(0 0 6px rgba(246, 213, 138, 0.55));
+}
+
+/* ---------- 獎章：圓形徽章，材質分銅、銀、金、彩虹 ---------- */
+.ach-medal {
+  --medal: linear-gradient(145deg, #f3c69a, #c07a45 55%, #8d5129);
+  --rim: #f6dcc0;
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--medal);
+  box-shadow:
+    inset 0 0 0 3px color-mix(in srgb, var(--rim) 70%, transparent),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.22),
+    0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* 左上角的一道反光 */
+.ach-medal::after {
+  content: '';
+  position: absolute;
+  inset: 5px 50% 50% 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.7), transparent 70%);
+  pointer-events: none;
+}
+
+.ach-medal-icon {
+  font-size: 25px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
+}
+
+.ach-medal--silver {
+  --medal: linear-gradient(145deg, #f4f6fa, #b9c0cc 55%, #858d9b);
+  --rim: #ffffff;
+}
+
+.ach-medal--gold {
+  --medal: linear-gradient(145deg, #fbe2a8, #e7b74f 55%, #b98426);
+  --rim: #fff3d0;
+}
+
+.ach-medal--rainbow {
+  --medal: conic-gradient(from 200deg, #f6a5b5, #f6d58a, #a8dba0, #98c7ec, #c8a8ec, #f6a5b5);
+  --rim: #ffffff;
+}
+
+/* 還沒完成：灰色、半透明 */
+.ach-medal.locked {
+  --medal: linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06));
+  --rim: rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.18);
+}
+
+.ach-medal.locked .ach-medal-icon {
+  filter: grayscale(1);
+  opacity: 0.35;
+}
+
+.ach-medal.locked::after {
+  display: none;
+}
+
+/* ---------- 成就清單：外框沿用扭蛋圖鑑的樣式 ---------- */
+.ach {
+  position: fixed;
+  inset: 0;
+  z-index: 10015;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(16px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom));
+  background: rgba(20, 12, 9, 0.6);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  overscroll-behavior: contain;
+}
+
+.ach[hidden] {
+  display: none;
+}
+
+.ach.open {
+  opacity: 1;
+}
+
+.ach-sheet {
+  --gold: #e7b74f;
+  --gold-light: #f6d58a;
+  --cream: #fbf4e8;
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  max-height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 28px 16px 20px;
+  border-radius: 20px;
+  color: var(--cream);
+  background:
+    radial-gradient(circle at 18% 22%, rgba(246, 213, 138, 0.14) 0 1.5px, transparent 2.5px) 0 0 / 46px 46px,
+    radial-gradient(ellipse at 50% 0%, #5a2c25 0%, #2c1a14 75%);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(246, 213, 138, 0.25);
+  translate: 0 24px;
+  scale: 0.97;
+  transition: translate 0.35s cubic-bezier(0.2, 0.9, 0.3, 1), scale 0.35s ease;
+}
+
+.ach.open .ach-sheet {
+  translate: 0 0;
+  scale: 1;
+}
+
+.ach-points {
+  margin-top: 6px;
+  font-family: var(--font-en-serif);
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  color: var(--gold-light);
+}
+
+.ach-points small {
+  margin-left: 4px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.ach-done {
+  margin-top: 4px;
+  font-size: 13px;
+  color: rgba(251, 244, 232, 0.72);
+}
+
+.ach-redeem {
+  margin: 12px auto 0;
+  max-width: 340px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: rgba(246, 213, 138, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(246, 213, 138, 0.3);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--gold-light);
+}
+
+/* 右側的 ⓘ：再看一次「成就怎麼玩？」 */
+.ach-help {
+  margin-left: 4px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1;
+  vertical-align: -1px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.ach-redeem[hidden],
+.ach-intro[hidden] {
+  display: none;
+}
+
+/* ---------- 第一次打開時的說明 ---------- */
+.ach-intro {
+  margin: 14px auto 0;
+  max-width: 400px;
+  padding: 14px 16px 16px;
+  border-radius: 14px;
+  background: rgba(246, 213, 138, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(246, 213, 138, 0.4);
+  animation: gachaFadeUp 0.45s ease both;
+}
+
+.ach-intro-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--gold-light);
+}
+
+.ach-intro-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0 14px;
+  list-style: none;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(251, 244, 232, 0.88);
+}
+
+.ach-intro-steps li {
+  display: flex;
+  gap: 8px;
+}
+
+.ach-intro-steps span {
+  flex: none;
+}
+
+.ach-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
+  list-style: none;
+  text-align: left;
+}
+
+.ach-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.ach-item.done {
+  background: rgba(251, 244, 232, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(246, 213, 138, 0.35);
+}
+
+.ach-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ach-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+}
+
+.ach-item:not(.done) .ach-name {
+  color: rgba(251, 244, 232, 0.75);
+}
+
+.ach-new {
+  padding: 0 7px;
+  border-radius: 999px;
+  background: #d9534f;
+  color: #ffffff;
+  font-family: var(--font-en-serif);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: 0.08em;
+  animation: albumNewPulse 1.6s ease-in-out infinite;
+}
+
+.ach-desc {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.55;
+  letter-spacing: 0.03em;
+  color: rgba(251, 244, 232, 0.62);
+}
+
+.ach-status {
+  margin-top: 3px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--gold-light);
+}
+
+.ach-meter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.ach-meter-bar {
+  flex: 1;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ach-meter-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+}
+
+.ach-meter-count {
+  font-family: var(--font-en-serif);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(251, 244, 232, 0.6);
+}
+
+.ach-pts {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--gold-light);
+}
+
+.ach-item:not(.done) .ach-pts {
+  color: rgba(251, 244, 232, 0.45);
+}
+
+/* ---------- 完成成就的通知：從畫面上方滑下來，點一下打開成就清單 ---------- */
+.ach-pop-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10020;
+  display: flex;
+  justify-content: center;
+  padding: max(12px, env(safe-area-inset-top)) 16px 0;
+  pointer-events: none;
+}
+
+.ach-pop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 380px;
+  padding: 10px 16px 10px 10px;
+  border: 0;
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(246, 213, 138, 0.22), transparent 60%),
+    linear-gradient(135deg, #5a2c25, #2c1a14);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(246, 213, 138, 0.5);
+  color: #fbf4e8;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  opacity: 0;
+  translate: 0 calc(-100% - 24px);
+  transition: translate 0.35s cubic-bezier(0.4, 0, 0.6, 1), opacity 0.35s ease;
+}
+
+.ach-pop.show {
+  opacity: 1;
+  translate: 0 0;
+  transition: translate 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.25), opacity 0.3s ease;
+}
+
+/* 獎章轉一圈亮相，外圈閃一道金光 */
+.ach-pop.show .ach-medal {
+  animation: achMedalIn 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2) 0.15s both;
+}
+
+.ach-pop-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ach-pop-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: #f6d58a;
+}
+
+.ach-pop-name {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+}
+
+.ach-pop-desc {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: rgba(251, 244, 232, 0.7);
+}
+
+.ach-pop-pts {
+  flex: none;
+  font-family: var(--font-en-serif);
+  font-size: 22px;
+  font-weight: 600;
+  color: #f6d58a;
+}
+
+@keyframes achMedalIn {
+  0% { transform: scale(0.3) rotateY(0deg); box-shadow: 0 0 0 0 rgba(246, 213, 138, 0.9); }
+  60% { transform: scale(1.12) rotateY(360deg); }
+  100% { transform: scale(1) rotateY(360deg); box-shadow: 0 0 0 14px rgba(246, 213, 138, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ach-intro,
+  .ach-new,
+  .ach-pop.show .ach-medal {
+    animation: none;
+  }
+}
