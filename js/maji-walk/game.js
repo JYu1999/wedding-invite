@@ -974,6 +974,8 @@ export function createGame(root, { onClose } = {}) {
     syncBoost();
     resize();
     aimCamera(0, true);
+    // 底下頁面若還有選起來的文字，iPhone 的「拷貝」選單會一直浮在遊戲上面
+    window.getSelection()?.removeAllRanges();
     root.classList.add('open');
     root.classList.remove('confetti');
     clock.start();
