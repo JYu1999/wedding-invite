@@ -90,6 +90,6 @@ js/
 - **調整小遊戲**：`js/maji-walk/game.js` 開頭的常數，例如公園距離 `GOAL`、命數 `LIVES`、牽繩長度 `LEASH`、無敵時間 `STAR_TIME`；麻吉各種脾氣在 `MOODS`。
 - **調整扭到新照片的機率**：`js/config.js` 的 `LOTTERY_NEW_WEIGHT`，還沒收集到的照片被抽中的機會是收集過的幾倍；設成 `1` 就是完全隨機。
 - **新增或調整成就**：`js/achievements/list.js`，每個成就有名稱 `name`、內容 `desc`、分數 `points`、獎章圖案 `icon` 與材質 `tier`（`bronze`／`silver`／`gold`／`rainbow`），以及看哪一項紀錄 `stat`、達到多少 `goal`。需要新的紀錄時，在對應的功能裡用 `js/achievements/progress.js` 的 `increment`（次數加一）、`recordMax`（最高紀錄）、`markItem`（收集不重複的項目）記下來。
-  - 成就用 `id` 記住訪客完成了哪些，**已經上線的成就不要改 `id`**。兌換獎品的說明是同一個檔案的 `REDEEM_NOTE`。
+  - **網站上線後，已經有的成就一律不能改、不能刪，只能新增**：訪客只記得完成了哪些成就，積分是用清單即時加總的，改分數、改條件或刪掉都會讓已經完成的人分數對不起來（詳細原因寫在 `list.js` 開頭）。兌換獎品的說明是同一個檔案的 `REDEEM_NOTE`。
 - **修改浮水印文字**：`js/config.js` 的 `WATERMARK`。
 - **修改倒數目標時間**：`js/config.js` 的 `WEDDING_DATE`。
