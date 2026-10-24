@@ -14,6 +14,7 @@ import { initGacha } from './gacha/gacha.js';
 import { initCollection } from './gacha/collection.js';
 import { initVenueMap } from './venue-map.js';
 import { initLoveTap } from './love-tap.js';
+import { initAchievements } from './achievements/ui.js';
 
 const music = initMusicPlayer();
 
@@ -24,20 +25,22 @@ const seasons = initSnow({
 
 // 拆信封時播放「開寶箱」特效與音效；翻面進入首頁時開始播放背景音樂
 // （兩者都在點擊當下觸發，算使用者互動，瀏覽器才允許出聲）
-// 進入首頁時，四季從冬天開始輪替、日夜從白天開始循環
+// 進入首頁時，四季從冬天開始輪替、日夜從白天開始循環，第一次來的人會看到成就的介紹
 initIntro({
   onOpen: playOpenEffect,
   onEnter: () => {
     music.play();
     seasons?.restartSeasons();
     initDayNight();
+    achievements?.welcome();
   },
 });
 
 initCountdown(WEDDING_DATE);
 initLoveTap(document.getElementById('weddingDay'));
 initVenueMap();
-// 燈箱、扭蛋圖鑑、扭蛋機都會處理 Esc，要依這個順序初始化：疊在最上面的先處理
+// 成就清單、燈箱、扭蛋圖鑑、扭蛋機都會處理 Esc，要依這個順序初始化：疊在最上面的先處理
+const achievements = initAchievements();
 const lightbox = initLightbox({ watermark: () => createWatermark(WATERMARK) });
 initGallery({ featured: GALLERY_FEATURED, photos: GALLERY_PHOTOS, watermark: WATERMARK, lightbox });
 initReveal();

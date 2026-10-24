@@ -16,6 +16,7 @@ export const HAPTIC = {
   pop: [16, 50, 26],                // 扭蛋打開
   success: [28, 70, 28, 70, 70],    // 刮完中獎
   collect: [12, 60, 22],            // 照片收進扭蛋圖鑑
+  achievement: [18, 50, 18, 50, 40], // 完成成就
 };
 
 export function haptic(pattern) {

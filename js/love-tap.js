@@ -3,6 +3,7 @@
 
 import { getAudio, tone } from './fx/sound.js';
 import { haptic, HAPTIC, tapHaptic } from './fx/haptics.js';
+import { increment } from './achievements/progress.js';
 
 const HEARTS = ['♥', '♥', '♥', '❤', '💕', '💗'];
 const COLORS = ['#e0566a', '#f2b3b8', '#d9534f', '#f08a9a', '#c94a5a'];
@@ -38,6 +39,7 @@ export function initLoveTap(cell) {
   cell.addEventListener('click', () => {
     blip();
     haptic(HAPTIC.tick);
+    increment('loveTaps');
 
     const plus = document.createElement('span');
     plus.className = 'love-plus';

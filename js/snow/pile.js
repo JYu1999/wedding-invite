@@ -67,6 +67,15 @@ export class SnowPile {
     }));
   }
 
+  // 積雪堆滿的比例：0 是完全沒雪、1 是整排都堆到上限
+  fullness() {
+    const h = this.heights;
+    if (!h.length || !this.maxHeight) return 0;
+    let sum = 0;
+    for (let i = 0; i < h.length; i++) sum += h[i];
+    return sum / (h.length * this.maxHeight);
+  }
+
   heightAt(x) {
     const i = Math.round(x / CELL_WIDTH);
     return this.heights[Math.min(Math.max(i, 0), this.heights.length - 1)] || 0;

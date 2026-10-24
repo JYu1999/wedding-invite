@@ -14,6 +14,7 @@ import { seen, markSeen } from '../storage.js';
 import { lockScroll, unlockScroll } from '../scroll-lock.js';
 import { preloadPhoto, savePhoto } from '../save-photo.js';
 import { openMajiWalk, isMajiPhoto } from '../maji-walk/launch.js';
+import { increment } from '../achievements/progress.js';
 
 const SPIN_MS = 1100;        // 轉把手、機器晃動，與 CSS .spinning 的動畫一致
 const DROP_MS = 1500;        // 扭蛋從出口掉出、彈一下、移到畫面中央
@@ -304,6 +305,7 @@ export function initGacha({ trigger, photos, collection, newWeight = 1 }) {
     const current = run;
     markSeen(COACH.machine.key);
     setState('spinning');
+    increment('gachaSpins');
 
     prize = { ...pickPrize(photos, collection, newWeight), isNew: false };
     photo.src = prize.src;

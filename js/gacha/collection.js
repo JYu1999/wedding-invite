@@ -6,9 +6,10 @@
 import { load, save, seen, markSeen } from '../storage.js';
 import { lockScroll, unlockScroll } from '../scroll-lock.js';
 import { haptic, HAPTIC } from '../fx/haptics.js';
-import { initBubble } from './bubble.js';
+import { initBubble } from '../bubble.js';
 import { collectSound } from './effects.js';
 import { openMajiWalk, isMajiPhoto } from '../maji-walk/launch.js';
+import { markItem } from '../achievements/progress.js';
 
 const STORE_KEY = 'collection';
 const FIRST_STASH_KEY = 'collection-first-stash';
@@ -32,6 +33,8 @@ export function initCollection({ photos, lightbox, onPlay }) {
   const owned = new Set(Array.isArray(saved.files) ? saved.files : []);
   const seenFiles = new Set(Array.isArray(saved.seen) ? saved.seen : []);
   const persist = () => save(STORE_KEY, { files: [...owned], seen: [...seenFiles] });
+  // 成就上線前就扭到的照片也算進收集成就，不另外跳通知
+  if (owned.size) markItem('photos', [...owned], { quiet: true });
 
   let gachaOpen = false;
 
@@ -40,13 +43,24 @@ export function initCollection({ photos, lightbox, onPlay }) {
   const unseen = () => collected().filter((p) => !seenFiles.has(p.file)).length;
   const isOpen = () => !root.hidden;
 
-  const bubble = initBubble({ onTap: () => open() });
+  // 預設在左上角：扭蛋機的 ✕ 在右上角，中間是照片卡，左上角最不會擋到操作
+  const bubble = initBubble({
+    el: $('albumBubble'),
+    posKey: 'bubble-position',
+    defaultPos: { side: 'left', y: 0 },
+    onTap: () => open(),
+  });
 
   // shown：泡泡上顯示的數字；照片飛進泡泡的那一刻才加一
   let shown = collected().length;
   const refreshBubble = () => {
     if (!bubble) return;
-    bubble.setProgress(shown, photos.length, unseen());
+    const fresh = unseen();
+    bubble.setInfo({
+      text: `${shown}/${photos.length}`,
+      hasNew: fresh > 0,
+      label: `開啟扭蛋圖鑑，已收集 ${shown} / ${photos.length} 張${fresh ? `，有 ${fresh} 張新照片` : ''}`,
+    });
     // 首頁上有收藏才出現；扭蛋機裡一定出現，讓人一開始就知道可以收集
     bubble.setVisible(gachaOpen || shown > 0);
   };
@@ -175,6 +189,7 @@ export function initCollection({ photos, lightbox, onPlay }) {
     if (has(photo)) return false;
     owned.add(photo.file);
     persist();
+    markItem('photos', photo.file);
     return true;
   };
 
