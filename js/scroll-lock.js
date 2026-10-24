@@ -7,6 +7,9 @@ export function lockScroll() {
   if (locks++ === 0) document.body.style.overflow = 'hidden';
 }
 
+// 有沒有全螢幕視窗（扭蛋機、圖鑑、燈箱、小遊戲⋯⋯）蓋在頁面上
+export const isScrollLocked = () => locks > 0;
+
 export function unlockScroll() {
   if (locks > 0 && --locks === 0) document.body.style.overflow = '';
 }

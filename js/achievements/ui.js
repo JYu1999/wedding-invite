@@ -1,11 +1,12 @@
 // 成就的畫面：浮動泡泡（顯示積分）、成就清單、完成成就時從上方滑下來的通知
-// 第一次進入首頁時泡泡跳出一句介紹；第一次打開成就清單時，上方先顯示「成就怎麼玩？」的說明
+// 泡泡跟扭蛋圖鑑一樣，拿到第一個成就才出現（不擋首頁的婚紗照），出現時旁邊跳出一句介紹；
+// 第一次打開成就清單時，上方先顯示「成就怎麼玩？」的說明
 // 成就有哪些在 list.js，進度怎麼記在 progress.js；這裡只負責顯示
 
 import { ACHIEVEMENTS, REDEEM_NOTE } from './list.js';
 import { onUnlock, progressOf, isUnlocked, unlockedAt, isUnseen, unseenCount, totalPoints, markAllSeen } from './progress.js';
 import { initBubble } from '../bubble.js';
-import { lockScroll, unlockScroll } from '../scroll-lock.js';
+import { lockScroll, unlockScroll, isScrollLocked } from '../scroll-lock.js';
 import { seen, markSeen } from '../storage.js';
 import { haptic, HAPTIC } from '../fx/haptics.js';
 import { getAudio, bell, tone } from '../fx/sound.js';
@@ -13,7 +14,8 @@ import { getAudio, bell, tone } from '../fx/sound.js';
 const POP_MS = 3800;      // 通知停留多久
 const POP_OUT_MS = 350;   // 與 CSS .ach-pop 收回的 transition 一致
 const CLOSE_MS = 300;     // 與 CSS .ach 淡出的 transition 一致
-const WELCOME_DELAY_MS = 4000;   // 進入首頁後多久跳出介紹（先讓人看一下主視覺）
+const WELCOME_FIRST_MS = 1200;   // 拿到第一個成就後多久跳出介紹（先讓通知滑下來）
+const WELCOME_BACK_MS = 4000;    // 以前就有成就的人：進入首頁後多久跳出介紹（先讓人看一下主視覺）
 const WELCOME_MS = 7000;
 const WELCOME_KEY = 'ach-welcome';
 const INTRO_KEY = 'ach-intro';
@@ -68,6 +70,7 @@ export function initAchievements() {
     onTap: () => open(),
   });
 
+  const hasAny = () => ACHIEVEMENTS.some(isUnlocked);
   const refreshBubble = () => {
     if (!bubble) return;
     const points = totalPoints();
@@ -77,9 +80,9 @@ export function initAchievements() {
       hasNew: fresh > 0,
       label: `開啟成就，目前 ${points} 分${fresh ? `，有 ${fresh} 個新完成的成就` : ''}`,
     });
+    bubble.setVisible(hasAny());
   };
   refreshBubble();
-  bubble?.setVisible(true);
 
   // ---------- 成就清單 ----------
 
@@ -219,16 +222,23 @@ export function initAchievements() {
     timer = setTimeout(dismiss, POP_MS);
   };
 
-  // 第一次進入首頁：泡泡吞一下、旁邊跳出介紹；已經點開過成就清單的人就不用了
-  const welcome = () => {
+  // 泡泡第一次出現時旁邊跳出介紹，只出現一次；已經點開過成就清單的人就不用了
+  // 泡泡在扭蛋機、燈箱、小遊戲底下看不到（第一個成就常常是在扭蛋機裡拿到的），等回到首頁再說
+  const introduce = (delay) => {
     if (seen(WELCOME_KEY) || seen(INTRO_KEY)) return;
     setTimeout(() => {
-      if (isOpen() || showing) return;
+      if (seen(WELCOME_KEY) || seen(INTRO_KEY) || !hasAny()) return;
+      if (isScrollLocked()) {
+        introduce(WELCOME_FIRST_MS);
+        return;
+      }
       markSeen(WELCOME_KEY);
-      bubble?.gulp();
-      bubble?.toast('這裡是成就！逛逛網站、玩扭蛋和小遊戲就能累積積分，婚禮當天可以兌換小禮物 🎁 點我看看', WELCOME_MS);
-    }, WELCOME_DELAY_MS);
+      bubble?.toast('這裡是成就！完成任務就能累積積分，婚禮當天可以兌換小禮物 🎁 點我看看所有成就', WELCOME_MS);
+    }, delay);
   };
+
+  // 進入首頁時呼叫：成就上線前就扭到照片、已經有成就的人，泡泡一進來就在，也介紹一次
+  const welcome = () => introduce(WELCOME_BACK_MS);
 
   onUnlock((a, { quiet }) => {
     refreshBubble();
@@ -236,6 +246,7 @@ export function initAchievements() {
     if (quiet) return;
     queue.push(a);
     if (!showing) showNext();
+    introduce(WELCOME_FIRST_MS);
   });
 
   return { open, welcome };
