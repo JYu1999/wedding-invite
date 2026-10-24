@@ -42,6 +42,56 @@
   height: 100%;
 }
 
+/* ---------- 吃到星星加速：漫畫式的集中線從畫面四周往中間衝，邊緣一圈金色的光 ---------- */
+/* 集中線的中心對準馬路遠方（鏡頭看的地方），中間留空不擋到主人和麻吉 */
+.mw-speed {
+  position: absolute;
+  inset: -25%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.mw-speed::before,
+.mw-speed::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: radial-gradient(ellipse 50% 46% at 50% 44%, transparent 42%, #000 82%);
+  mask-image: radial-gradient(ellipse 50% 46% at 50% 44%, transparent 42%, #000 82%);
+}
+/* 兩層粗細、間隔不同的白線，輪流跳動角度，看起來一閃一閃往前衝 */
+.mw-speed::before {
+  background: repeating-conic-gradient(from 0deg at 50% 44%,
+    transparent 0deg 4.2deg, rgba(255, 255, 255, 0.85) 4.2deg 4.7deg, transparent 4.7deg 9.5deg);
+  animation: mw-speed-a 0.16s steps(1) infinite;
+}
+.mw-speed::after {
+  background: repeating-conic-gradient(from 2deg at 50% 44%,
+    transparent 0deg 6.5deg, rgba(255, 246, 214, 0.7) 6.5deg 7.4deg, transparent 7.4deg 13deg);
+  animation: mw-speed-b 0.22s steps(1) infinite;
+}
+.mw.boost .mw-speed { opacity: 1; }
+@keyframes mw-speed-a {
+  0% { transform: rotate(0deg); }
+  33% { transform: rotate(3deg); }
+  66% { transform: rotate(-2deg); }
+}
+@keyframes mw-speed-b {
+  0% { transform: rotate(0deg); opacity: 0.8; }
+  50% { transform: rotate(-4deg); opacity: 1; }
+}
+/* 邊緣的金光 */
+.mw-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 90px 10px rgba(255, 214, 90, 0.55);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.mw.boost .mw-stage::after { opacity: 1; }
+
 /* ---------- 載入中 ---------- */
 .mw-loading {
   position: absolute;
@@ -484,6 +534,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .mw-speed::before,
+  .mw-speed::after,
   .mw-bubble.show,
   .mw-star,
   .mw.confetti::before { animation: none; }

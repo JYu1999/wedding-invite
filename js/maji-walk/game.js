@@ -3,7 +3,8 @@
 // 主人自己可以往前後左右走；麻吉不聽指揮，會突然往左右衝、往前暴衝、往回跑或停住不動（頭上先冒出符號預告）
 // 兩人之間是一條軟軟的牽繩：繩子拉緊時麻吉會拖著主人走，主人也可以拉繩子把麻吉拉回來（麻吉停住不動時拉不動）；
 // 主人走得比麻吉快，可以靠近一點讓繩子鬆開，但跟麻吉撞在一起也算撞到
-// 主人或麻吉撞到障礙物、或兩個撞在一起，就少一條命（一共 5 條），撞到後有一下下不會再被撞；❤️ 補一條命、⭐ 一陣子無敵
+// 主人或麻吉撞到障礙物、或兩個撞在一起，就少一條命（一共 5 條），撞到後有一下下不會再被撞；❤️ 補一條命、
+// ⭐ 一陣子無敵，而且往前的速度變 2 倍：鏡頭拉廣、畫面出現集中線與迎面飛來的風切線，音樂也跟著加快
 // 流程：標題（麻吉特寫）→ 教學（第一次玩）→ 倒數 → 出發 → 抵達公園／命用完 → 再走一次或離開
 
 import * as THREE from './three.js';
@@ -11,6 +12,7 @@ import { createStreet, WALK_HALF } from './street.js';
 import { createObstacles } from './obstacles.js';
 import { createDog, createOwner, createLeash } from './characters.js';
 import { createInput } from './input.js';
+import { createWind } from './wind.js';
 import { music, sfx } from './music.js';
 import { haptic } from '../fx/haptics.js';
 import { isTouch } from '../device.js';
@@ -27,6 +29,10 @@ const BUMP = 0.62;            // 主人和麻吉靠這麼近就算撞在一起
 const EDGE = WALK_HALF - 0.3;
 const INVULN = 1.6;           // 撞到之後幾秒內不會再被撞
 const STAR_TIME = 7;
+const BOOST = 2;              // 吃到星星時往前的速度是平常的幾倍（左右閃避不變）
+const BOOST_EASE = 4;         // 加速、減速的快慢：越大越快到達目標速度（約 1 / BOOST_EASE 秒）
+const BOOST_FOV = 14;         // 全速時鏡頭視角多拉廣幾度，看起來更快
+const STAR_GRACE = 1;         // 星星結束後還有幾秒不會被撞（剛從高速慢下來，來不及閃）
 const TELEGRAPH = 0.7;        // 麻吉發作前幾秒先冒出符號
 const SKY = 0xbfe2f4;
 const STEP = 1 / 60;
@@ -49,13 +55,14 @@ const HEART_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-
 
 const TEMPLATE = `
   <div class="mw-stage"></div>
+  <div class="mw-speed" aria-hidden="true"></div>
   <div class="mw-hud" hidden>
     <div class="mw-lives"></div>
     <div class="mw-meter">
       <div class="mw-bar"><i class="mw-fill"></i><b class="mw-runner">🐕</b><b class="mw-goal">🌳</b></div>
       <span class="mw-dist">0</span>
     </div>
-    <div class="mw-star" hidden>⭐ 無敵 <span></span></div>
+    <div class="mw-star" hidden>⭐ 無敵衝刺 <span></span></div>
   </div>
   <div class="mw-top">
     <button type="button" class="mw-icon-btn mw-pause" aria-label="暫停" hidden>❚❚</button>
@@ -108,6 +115,7 @@ export function createGame(root, { onClose } = {}) {
   const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 150);
 
   const street = createStreet(scene);
+  const wind = createWind(scene);
   const obstacles = createObstacles(scene, { onHonk: () => sfx.honk() });
   const maji = createDog();
   const person = createOwner();
@@ -116,13 +124,15 @@ export function createGame(root, { onClose } = {}) {
   // 整個畫面（提示卡上也可以）都能按住拖曳
   const input = createInput(root, $('.mw-joy'));
 
+  let baseFov = 60;
   const resize = () => {
     const w = stage.clientWidth;
     const h = stage.clientHeight;
     if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    camera.fov = camera.aspect < 1 ? 66 : 52;
+    baseFov = camera.aspect < 1 ? 66 : 52;
+    camera.fov = baseFov + (boost - 1) / (BOOST - 1) * BOOST_FOV;
     camera.updateProjectionMatrix();
   };
   new ResizeObserver(resize).observe(stage);
@@ -135,6 +145,8 @@ export function createGame(root, { onClose } = {}) {
   let lives = LIVES;
   let invuln = 0;
   let starT = 0;
+  let boost = 1;           // 目前的速度倍率：吃到星星時慢慢加到 BOOST，結束後慢慢回到 1
+  let boosting = false;
   let raceStart = 0;
   let parkD = Infinity;
   let maxD = 0;
@@ -262,11 +274,12 @@ export function createGame(root, { onClose } = {}) {
 
   // 麻吉想走的速度
   const dogWants = () => {
+    const pace = base * boost;
     switch (dog.mood) {
-      case 'trot': return { x: Math.sin(time * 1.1 + dog.wander) * 0.9 - dog.x * 0.12, d: base };
-      case 'left': return { x: -4.6, d: base * 0.55 };
-      case 'right': return { x: 4.6, d: base * 0.55 };
-      case 'dash': return { x: Math.sin(time * 2) * 0.5, d: base + 5.5 };
+      case 'trot': return { x: Math.sin(time * 1.1 + dog.wander) * 0.9 - dog.x * 0.12, d: pace };
+      case 'left': return { x: -4.6, d: pace * 0.55 };
+      case 'right': return { x: 4.6, d: pace * 0.55 };
+      case 'dash': return { x: Math.sin(time * 2) * 0.5, d: pace + 5.5 };
       case 'back': return { x: 0, d: -5.5 };
       default: return { x: 0, d: 0 };
     }
@@ -276,7 +289,7 @@ export function createGame(root, { onClose } = {}) {
 
   const physics = (dt, move) => {
     // 主人全速往前比麻吉快一點：可以追上去讓繩子鬆開，但追太近會撞到麻吉
-    const forward = base + 1.4;
+    const forward = (base + 1.4) * boost;
     owner.vx = move.x * 5.5;
     owner.vd = move.y >= 0 ? move.y * forward : move.y * 4.2;
     owner.x += owner.vx * dt;
@@ -377,6 +390,7 @@ export function createGame(root, { onClose } = {}) {
       } else if (pickup?.type === 'star') {
         sfx.star();
         haptic([15, 40, 15]);
+        if (starT <= 0) sfx.whoosh();
         starT = practice ? 4 : STAR_TIME;
         if (state === 'play') music.setMode('star');
         popup('無敵！', actorObj(who), 'star');
@@ -416,7 +430,8 @@ export function createGame(root, { onClose } = {}) {
       wantLook.set(dog.x, 0.6, -dog.d);
     } else {
       // 跟著主人：直式手機視角比較窄，鏡頭拉遠一點才看得到兩邊
-      const halfFov = THREE.MathUtils.degToRad(camera.fov / 2);
+      // 用平常的視角算距離：加速時視角拉廣，鏡頭不跟著靠近
+      const halfFov = THREE.MathUtils.degToRad(baseFov / 2);
       const hTan = Math.tan(halfFov) * camera.aspect;
       const back = Math.max(6, Math.min(8.6, 3.3 / hTan));
       const cx = (owner.x * 0.55 + dog.x * 0.45) * 0.75;
@@ -432,9 +447,16 @@ export function createGame(root, { onClose } = {}) {
       camLook.lerp(wantLook, k);
     }
     camera.position.copy(camPos);
-    if (shake > 0) {
-      camera.position.x += (Math.random() - 0.5) * shake * 0.8;
-      camera.position.y += (Math.random() - 0.5) * shake * 0.8;
+    // 加速時微微抖動，像風很大
+    const jitter = shake * 0.8 + (boost - 1) * 0.05;
+    if (jitter > 0) {
+      camera.position.x += (Math.random() - 0.5) * jitter;
+      camera.position.y += (Math.random() - 0.5) * jitter;
+    }
+    const fov = baseFov + ((boost - 1) / (BOOST - 1)) * BOOST_FOV;
+    if (Math.abs(camera.fov - fov) > 0.01) {
+      camera.fov = fov;
+      camera.updateProjectionMatrix();
     }
     camera.lookAt(camLook);
   };
@@ -488,8 +510,14 @@ export function createGame(root, { onClose } = {}) {
     invuln = Math.max(0, invuln - dt);
     if (starT > 0) {
       starT -= dt;
-      if (starT <= 0 && state === 'play') music.setMode('run');
+      if (starT <= 0) {
+        invuln = Math.max(invuln, STAR_GRACE);
+        if (state === 'play') music.setMode('run');
+      }
     }
+    const goal = starT > 0 && (state === 'play' || state === 'tutorial') ? BOOST : 1;
+    boost += (goal - boost) * Math.min(1, dt * BOOST_EASE);
+    if (Math.abs(boost - goal) < 0.002) boost = goal;
     shake = Math.max(0, shake - dt);
 
     if (state === 'play') {
@@ -528,6 +556,15 @@ export function createGame(root, { onClose } = {}) {
     }
   };
 
+  // 加速開始、結束（包含暫停、抵達、撞完命、離開）時切換集中線與音樂速度
+  const syncBoost = () => {
+    const on = starT > 0 && (state === 'play' || state === 'tutorial');
+    if (on === boosting) return;
+    boosting = on;
+    root.classList.toggle('boost', on);
+    music.setTempo(on ? BOOST : 1);
+  };
+
   const clock = new THREE.Clock(false);
   const frame = () => {
     const dt = Math.min(clock.getDelta(), 0.1);
@@ -540,8 +577,10 @@ export function createGame(root, { onClose } = {}) {
       }
       obstacles.update(dt, owner.d, time);
       street.update(owner.d);
+      wind.update(dt, owner.d, (boost - 1) / (BOOST - 1));
       syncModels(dt);
     }
+    syncBoost();
     aimCamera(dt);
     renderer.render(scene, camera);
     if (hud.hidden === false) renderProgress();
@@ -650,7 +689,7 @@ export function createGame(root, { onClose } = {}) {
     },
     {
       title: '道具',
-      text: '吃到 ❤ 可以補回一條命；吃到 ⭐ 可以無敵一陣子，撞到的東西都會被撞飛！',
+      text: '吃到 ❤ 可以補回一條命；吃到 ⭐ 可以無敵一陣子、速度變兩倍，撞到的東西都會被撞飛！',
       enter(s) {
         const d = owner.d;
         obstacles.place('heart', owner.x * 0.5, d + 14);
@@ -750,6 +789,7 @@ export function createGame(root, { onClose } = {}) {
     obstacles.planRace(raceStart, parkD);
     lives = LIVES;
     invuln = starT = elapsed = maxD = progress = 0;
+    boost = 1;
     base = 6.4;
     trafficT = 6;
     renderLives();
@@ -904,6 +944,7 @@ export function createGame(root, { onClose } = {}) {
     input.enable(false);
     renderer.setAnimationLoop(null);
     clock.stop();
+    syncBoost();
     hidePanel();
     root.classList.remove('open', 'confetti');
     root.querySelectorAll('.mw-pop').forEach((el) => el.remove());
@@ -929,6 +970,8 @@ export function createGame(root, { onClose } = {}) {
     freshWorld();
     lives = LIVES;
     starT = invuln = 0;
+    boost = 1;
+    syncBoost();
     resize();
     aimCamera(0, true);
     root.classList.add('open');

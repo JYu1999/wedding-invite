@@ -71,6 +71,7 @@ js/
     characters.js       麻吉（Q 版白色米克斯）、路邊野狗、白色小人主人、軟軟的牽繩
     street.js           台灣街景：騎樓、招牌、鐵窗、電線桿，終點的麻吉公園
     obstacles.js        汽機車、路樹、盆栽、三角錐、野狗，以及愛心與無敵星星
+    wind.js             吃到無敵星星加速時，迎面飛過來的風切線
     music.js            小遊戲自己的 8-bit 音樂與音效（跟首頁背景音樂分開）
     input.js            手指拖曳搖桿、方向鍵
     kit.js              建模共用工具（材質、影子、合併網格）
@@ -88,7 +89,7 @@ js/
 - **新增或更換扭蛋照片**：開放下載的照片放進 `assets/images/lottery/downloadable/`、只能欣賞的放進 `assets/images/lottery/non-downloadable/`，再到 `js/config.js` 的 `LOTTERY_DOWNLOADABLE`／`LOTTERY_VIEW_ONLY` 加上檔名。抽中時會顯示「恭喜你/妳獲得 {檔名} 一張！」，所以檔名就是照片的標題。扭蛋圖鑑會自動多一格、總數跟著變，訪客已經收集的照片不受影響。
   - 扭蛋圖鑑用檔名記住訪客收集過哪些照片，**已經上線的照片不要改檔名**，否則會被當成新的一張。
 - **麻吉的照片**：檔名有「麻吉」的扭蛋照片，扭到時與在圖鑑裡看大圖時會多一顆「帶麻吉去公園」按鈕，開啟小遊戲。新增麻吉的照片時，檔名記得包含「麻吉」。
-- **調整小遊戲**：`js/maji-walk/game.js` 開頭的常數，例如公園距離 `GOAL`、命數 `LIVES`、牽繩長度 `LEASH`、無敵時間 `STAR_TIME`；麻吉各種脾氣在 `MOODS`。
+- **調整小遊戲**：`js/maji-walk/game.js` 開頭的常數，例如公園距離 `GOAL`、命數 `LIVES`、牽繩長度 `LEASH`、無敵時間 `STAR_TIME`、吃到星星的加速倍率 `BOOST`；麻吉各種脾氣在 `MOODS`。
 - **調整扭到新照片的機率**：`js/config.js` 的 `LOTTERY_NEW_WEIGHT`，還沒收集到的照片被抽中的機會是收集過的幾倍；設成 `1` 就是完全隨機。
 - **新增或調整成就**：`js/achievements/list.js`，每個成就有名稱 `name`、內容 `desc`、分數 `points`、獎章圖案 `icon` 與材質 `tier`（`bronze`／`silver`／`gold`／`rainbow`），以及看哪一項紀錄 `stat`、達到多少 `goal`。需要新的紀錄時，在對應的功能裡用 `js/achievements/progress.js` 的 `increment`（次數加一）、`recordMax`（最高紀錄）、`markItem`（收集不重複的項目）記下來。
   - **網站上線後，已經有的成就一律不能改、不能刪，只能新增**：訪客只記得完成了哪些成就，積分是用清單即時加總的，改分數、改條件或刪掉都會讓已經完成的人分數對不起來（詳細原因寫在 `list.js` 開頭）。兌換獎品的說明是同一個檔案的 `REDEEM_NOTE`。

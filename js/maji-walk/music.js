@@ -3,12 +3,13 @@
 //   calm：標題與教學，只有旋律、低音和輕輕的和弦
 //   run：正式出發，加上鼓
 //   star：吃到無敵星星，再加上閃亮的琶音和十六分音符的 hi-hat
+// 吃到星星加速時，整首的速度也跟著加快（setTempo）
 // AudioContext 沿用網站的（sound.js），一定要在使用者點擊時先叫醒
 
 import { getAudio } from '../fx/sound.js';
 
 const BPM = 138;
-const STEP = 60 / BPM / 2;          // 八分音符
+const BASE_STEP = 60 / BPM / 2;     // 八分音符
 const LOOKAHEAD = 0.15;
 
 const NOTE = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -118,26 +119,28 @@ function hiss(dest, t, dur, { type = 'highpass', f = 7000, q = 0.7, gain = 0.05 
 // ---------- 音樂 ----------
 
 let mode = 'calm';
+let tempo = 1;           // 速度倍率：2 就是兩倍快
 let timer = 0;
 let step = 0;
 let nextTime = 0;
 
 function scheduleStep(i, t) {
   const dest = a.music;
+  const eighth = BASE_STEP / tempo;   // 這一拍的八分音符長度（加速時變短）
   const bar = Math.floor(i / 8);
   const beat = i % 8;
   const chord = CHORDS[PROGRESSION[bar]];
   const note = lead[i];
   if (note) {
-    voice(dest, note.f, t, note.len * STEP * 0.92, { type: 'square', gain: 0.055, cutoff: 3200 });
-    voice(dest, note.f / 2, t, note.len * STEP * 0.9, { type: 'triangle', gain: 0.05 });
+    voice(dest, note.f, t, note.len * eighth * 0.92, { type: 'square', gain: 0.055, cutoff: 3200 });
+    voice(dest, note.f / 2, t, note.len * eighth * 0.9, { type: 'triangle', gain: 0.05 });
   }
   // 低音：根音、八度跳來跳去
   const root = freq(chord[0]);
-  if (beat % 2 === 0) voice(dest, beat % 4 === 0 ? root : root * 2, t, STEP * 0.85, { type: 'triangle', gain: 0.2 });
+  if (beat % 2 === 0) voice(dest, beat % 4 === 0 ? root : root * 2, t, eighth * 0.85, { type: 'triangle', gain: 0.2 });
   // 反拍的和弦
   if (beat % 2 === 1) {
-    chord.slice(1).forEach((n) => voice(dest, freq(n), t, STEP * 0.45, { type: 'square', gain: 0.012, cutoff: 1800 }));
+    chord.slice(1).forEach((n) => voice(dest, freq(n), t, eighth * 0.45, { type: 'square', gain: 0.012, cutoff: 1800 }));
   }
   if (mode === 'calm') return;
   // 鼓：大鼓在一、三拍，小鼓在二、四拍，hi-hat 每個八分音符
@@ -148,10 +151,10 @@ function scheduleStep(i, t) {
   }
   hiss(dest, t, 0.04, { gain: 0.045 });
   if (mode === 'star') {
-    hiss(dest, t + STEP / 2, 0.03, { gain: 0.035 });
+    hiss(dest, t + eighth / 2, 0.03, { gain: 0.035 });
     // 閃亮亮的琶音
     chord.slice(1).concat(chord[1]).forEach((n, k) => {
-      voice(dest, freq(n) * 2, t + (k * STEP) / 4, STEP / 4, { type: 'square', gain: 0.018, cutoff: 5000 });
+      voice(dest, freq(n) * 2, t + (k * eighth) / 4, eighth / 4, { type: 'square', gain: 0.018, cutoff: 5000 });
     });
   }
 }
@@ -160,7 +163,7 @@ function tick() {
   while (nextTime < a.ctx.currentTime + LOOKAHEAD) {
     scheduleStep(step, nextTime);
     step = (step + 1) % STEPS;
-    nextTime += STEP;
+    nextTime += BASE_STEP / tempo;
   }
 }
 
@@ -181,6 +184,10 @@ export const music = {
   },
   setMode(nextMode) {
     mode = nextMode;
+  },
+  // 從下一個音開始換速度（已經排好的那一點點照舊）
+  setTempo(value) {
+    tempo = value;
   },
   stop(fade = 0.35) {
     if (!a || !timer) return;
@@ -236,6 +243,26 @@ export const sfx = {
     const t = at();
     if (t == null) return;
     ['C5', 'E5', 'G5', 'C6', 'E6', 'G6', 'C7'].forEach((n, i) => voice(a.sfx, freq(n), t + i * 0.045, 0.18, { type: 'square', gain: 0.07, cutoff: 6000 }));
+  },
+  // 吃到星星開始加速：「咻——」一陣風聲由低往高掃過去
+  whoosh() {
+    const t = at();
+    if (t == null) return;
+    const { ctx, noiseBuf } = a;
+    const src = ctx.createBufferSource();
+    src.buffer = noiseBuf;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.Q.value = 1.4;
+    filter.frequency.setValueAtTime(400, t);
+    filter.frequency.exponentialRampToValueAtTime(5200, t + 0.45);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.45, t + 0.12);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+    src.connect(filter).connect(g).connect(a.sfx);
+    src.start(t, 0, 0.62);
+    voice(a.sfx, 220, t, 0.5, { type: 'sawtooth', gain: 0.04, glide: 880, cutoff: 2400 });
   },
   // 無敵時撞飛東西
   smash() {
