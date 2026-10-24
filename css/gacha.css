@@ -158,6 +158,21 @@
   background: linear-gradient(135deg, #fbe2a8, var(--gold-light) 55%, var(--gold));
 }
 
+.gacha-btn--walk {
+  order: -1;            /* 獨立一列放在最上面 */
+  flex-basis: 100%;
+  max-width: 280px;
+  border-color: transparent;
+  background: linear-gradient(135deg, #9cc795, #6f9a69);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(111, 154, 105, 0.4);
+}
+
+.gacha-btn--walk:hover {
+  background: linear-gradient(135deg, #acd4a5, #7fa878);
+}
+
 .gacha-btn:disabled {
   opacity: 0.5;
   cursor: default;

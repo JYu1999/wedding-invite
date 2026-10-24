@@ -34,6 +34,7 @@ css/
   music-player.css      黑膠唱片音樂播放器
   gacha.css             聖誕扭蛋機、扭蛋、刮刮樂照片卡、手指操作提示
   album.css             扭蛋圖鑑、浮動泡泡、照片飛進泡泡
+  maji-walk.css         「帶麻吉去公園」小遊戲的畫面（分數、提示、教學卡、結算）
 js/
   main.js               進入點，初始化各模組
   config.js             可調整內容：倒數時間、照片清單、浮水印文字、扭蛋照片清單
@@ -57,6 +58,16 @@ js/
     effects.js          扭蛋機的音效、扭蛋打開的金粉、中獎彩帶
     collection.js       扭蛋圖鑑：記住扭到哪些照片、收集進度、照片飛進泡泡
     bubble.js           扭蛋圖鑑的浮動泡泡（可拖曳、貼齊邊緣）
+  maji-walk/            「帶麻吉去公園」小遊戲：扭到或在圖鑑看麻吉的照片時，按「帶麻吉去公園」開始
+    launch.js           入口：按下去才載入 3D 引擎與遊戲、暫停首頁音樂；判斷是不是麻吉的照片
+    game.js             遊戲本體：牽繩、麻吉的脾氣、撞到扣命、道具、教學、結算
+    characters.js       麻吉（Q 版白色米克斯）、路邊野狗、白色小人主人、軟軟的牽繩
+    street.js           台灣街景：騎樓、招牌、鐵窗、電線桿，終點的麻吉公園
+    obstacles.js        汽機車、路樹、盆栽、三角錐、野狗，以及愛心與無敵星星
+    music.js            小遊戲自己的 8-bit 音樂與音效（跟首頁背景音樂分開）
+    input.js            手指拖曳搖桿、方向鍵
+    kit.js              建模共用工具（材質、影子、合併網格）
+    three.js            從 CDN 載入 three.js
   snow/
     snow.js             照片上的雪景動畫與融雪互動
     sprites.js          雪花造型
@@ -69,6 +80,8 @@ js/
 - **更換置頂放大的照片**：`js/config.js` 的 `GALLERY_FEATURED`。
 - **新增或更換扭蛋照片**：開放下載的照片放進 `assets/images/lottery/downloadable/`、只能欣賞的放進 `assets/images/lottery/non-downloadable/`，再到 `js/config.js` 的 `LOTTERY_DOWNLOADABLE`／`LOTTERY_VIEW_ONLY` 加上檔名。抽中時會顯示「恭喜你/妳獲得 {檔名} 一張！」，所以檔名就是照片的標題。扭蛋圖鑑會自動多一格、總數跟著變，訪客已經收集的照片不受影響。
   - 扭蛋圖鑑用檔名記住訪客收集過哪些照片，**已經上線的照片不要改檔名**，否則會被當成新的一張。
+- **麻吉的照片**：檔名有「麻吉」的扭蛋照片，扭到時與在圖鑑裡看大圖時會多一顆「帶麻吉去公園」按鈕，開啟小遊戲。新增麻吉的照片時，檔名記得包含「麻吉」。
+- **調整小遊戲**：`js/maji-walk/game.js` 開頭的常數，例如公園距離 `GOAL`、命數 `LIVES`、牽繩長度 `LEASH`、無敵時間 `STAR_TIME`；麻吉各種脾氣在 `MOODS`。
 - **調整扭到新照片的機率**：`js/config.js` 的 `LOTTERY_NEW_WEIGHT`，還沒收集到的照片被抽中的機會是收集過的幾倍；設成 `1` 就是完全隨機。
 - **修改浮水印文字**：`js/config.js` 的 `WATERMARK`。
 - **修改倒數目標時間**：`js/config.js` 的 `WEDDING_DATE`。

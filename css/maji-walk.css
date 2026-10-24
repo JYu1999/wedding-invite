@@ -1,0 +1,490 @@
+/* ==================== 帶麻吉去公園（小遊戲） ==================== */
+.mw {
+  --mw-ink: #4a3520;
+  --mw-cream: #fffaf0;
+  --mw-wine: #b35d50;
+  --mw-green: #2f6b3a;
+  --mw-heart: #e8384f;
+  position: fixed;
+  inset: 0;
+  z-index: 10010;   /* 疊在扭蛋機、圖鑑、燈箱之上 */
+  overflow: hidden;
+  background: #bfe2f4;
+  color: var(--mw-ink);
+  font-family: var(--font-serif, 'Noto Serif TC', serif);
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+  text-align: center;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.mw.open { opacity: 1; }
+.mw[hidden] { display: none; }
+
+.mw button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mw-stage {
+  position: absolute;
+  inset: 0;
+}
+.mw-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- 載入中 ---------- */
+.mw-loading {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(#cfe9f6, #f6efe2);
+  font-size: 16px;
+}
+.mw.is-loading .mw-loading { display: flex; }
+.mw-loading-paws span {
+  display: inline-block;
+  margin: 0 4px;
+  font-size: 26px;
+  animation: mw-paw 1.2s ease-in-out infinite;
+}
+.mw-loading-paws span:nth-child(2) { animation-delay: 0.2s; }
+.mw-loading-paws span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes mw-paw {
+  0%, 100% { transform: translateY(0); opacity: 0.35; }
+  40% { transform: translateY(-8px); opacity: 1; }
+}
+
+/* ---------- 上方：命、進度、按鈕 ---------- */
+.mw-hud {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  left: 12px;
+  right: 104px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  pointer-events: none;
+}
+.mw-hud[hidden] { display: none; }
+.mw-hud.practice .mw-meter { display: none; }   /* 教學時還沒開始算距離 */
+
+.mw-lives {
+  display: flex;
+  gap: 3px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(255, 250, 240, 0.85);
+  box-shadow: 0 2px 8px rgba(60, 40, 20, 0.15);
+}
+.mw-lives i {
+  width: 20px;
+  height: 20px;
+  display: block;
+  transition: transform 0.25s ease;
+}
+.mw-lives svg {
+  width: 100%;
+  height: 100%;
+  fill: var(--mw-heart);
+  stroke: #a3202f;
+  stroke-width: 1.2;
+}
+.mw-lives i.empty svg {
+  fill: #e4dcd0;
+  stroke: #c8bba8;
+}
+.mw-lives i.empty { transform: scale(0.85); }
+
+.mw-meter {
+  width: min(100%, 260px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 8px;
+  border-radius: 999px;
+  background: rgba(255, 250, 240, 0.85);
+  box-shadow: 0 2px 8px rgba(60, 40, 20, 0.15);
+}
+.mw-bar {
+  position: relative;
+  flex: 1;
+  height: 8px;
+  margin: 0 12px 0 4px;
+  border-radius: 4px;
+  background: #e6dccb;
+}
+.mw-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e7b74f, #7fa37a);
+}
+.mw-runner,
+.mw-goal {
+  position: absolute;
+  top: 50%;
+  font-size: 16px;
+  line-height: 1;
+  transform: translate(-50%, -55%);
+}
+.mw-goal { left: 100%; }
+.mw-runner { transform: translate(-50%, -55%) scaleX(-1); }
+.mw-dist {
+  font-family: var(--font-en-serif, serif);
+  font-weight: 600;
+  font-size: 17px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.mw-dist small {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.mw-star {
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ffe169, #ffb84f);
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 2px 10px rgba(255, 190, 60, 0.6);
+  animation: mw-throb 0.5s ease-in-out infinite alternate;
+}
+.mw-star[hidden] { display: none; }
+@keyframes mw-throb { to { transform: scale(1.06); } }
+
+.mw-top {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  right: 12px;
+  display: flex;
+  gap: 8px;
+}
+.mw-icon-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 250, 240, 0.88);
+  box-shadow: 0 2px 8px rgba(60, 40, 20, 0.18);
+  font-size: 15px;
+  line-height: 40px;
+}
+.mw-icon-btn[hidden] { display: none; }
+
+/* ---------- 麻吉頭上的預告符號、跳出來的字 ---------- */
+.mw-bubble {
+  position: absolute;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 8px;
+  border-radius: 19px;
+  background: #fff;
+  border: 2.5px solid var(--mw-ink);
+  font: 800 20px/33px system-ui, sans-serif;
+  color: var(--mw-wine);
+  transform: translate(-50%, -130%) scale(0);
+  transition: transform 0.18s cubic-bezier(0.3, 1.6, 0.5, 1);
+  pointer-events: none;
+}
+.mw-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-right: 2.5px solid var(--mw-ink);
+  border-bottom: 2.5px solid var(--mw-ink);
+  transform: translateX(-50%) rotate(45deg);
+}
+.mw-bubble.show {
+  transform: translate(-50%, -130%) scale(1);
+  animation: mw-shiver 0.12s linear infinite;
+}
+@keyframes mw-shiver {
+  50% { margin-left: 2px; }
+}
+
+.mw-pop {
+  position: absolute;
+  font-weight: 800;
+  font-size: 20px;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 0 4px #fff, 0 0 8px #fff;
+  transform: translate(-50%, -100%);
+  animation: mw-pop 0.9s ease-out forwards;
+}
+.mw-pop.bad { color: #c62d2d; }
+.mw-pop.good { color: #d6335a; }
+.mw-pop.star { color: #e08a00; }
+@keyframes mw-pop {
+  0% { transform: translate(-50%, -60%) scale(0.6); opacity: 0; }
+  20% { transform: translate(-50%, -110%) scale(1.15); opacity: 1; }
+  100% { transform: translate(-50%, -220%) scale(1); opacity: 0; }
+}
+
+.mw-toast {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  padding: 6px 18px;
+  border-radius: 999px;
+  background: rgba(74, 53, 32, 0.82);
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, 0) scale(0.8);
+  pointer-events: none;
+}
+.mw-toast.show { animation: mw-toast 1.1s ease forwards; }
+@keyframes mw-toast {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(0.7); }
+  15% { opacity: 1; transform: translate(-50%, 0) scale(1.08); }
+  25%, 75% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -12px) scale(1); }
+}
+
+/* ---------- 搖桿 ---------- */
+.mw-joy {
+  position: absolute;
+  width: 112px;
+  height: 112px;
+  margin: -56px 0 0 -56px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: rgba(74, 53, 32, 0.15);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.mw-joy.show { opacity: 1; }
+.mw-joy span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 教學第一步：手指示範按住拖曳 */
+.mw-coach {
+  position: absolute;
+  left: 50%;
+  bottom: 22%;
+  width: 150px;
+  height: 60px;
+  margin-left: -75px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.mw-coach.show { opacity: 1; }
+.mw-coach::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  animation: mw-drag 2.4s ease-in-out infinite;
+}
+.mw-coach span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 30px;
+  height: 38px;
+  margin: -6px 0 0 -8px;
+  background: no-repeat center / contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 38'%3E%3Cpath d='M10 3a3 3 0 0 1 6 0v12l7 1.5c2.5.6 4 2.6 3.6 5.1L25 31c-.4 2.6-2.6 4.6-5.3 4.6h-6.2c-1.9 0-3.6-1-4.5-2.6L3.5 23.6c-.8-1.5-.2-3.3 1.3-4 1.2-.6 2.6-.3 3.5.7L10 22z' fill='%23fff' stroke='%234a3520' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E");
+  animation: mw-drag 2.4s ease-in-out infinite;
+}
+@keyframes mw-drag {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-46px); }
+  75% { transform: translateX(46px); }
+}
+
+/* ---------- 教學提示卡 ---------- */
+.mw-tip {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 96px);
+  left: 50%;
+  width: min(calc(100% - 32px), 420px);
+  padding: 12px 16px 10px;
+  border-radius: 16px;
+  background: rgba(255, 250, 240, 0.94);
+  box-shadow: 0 6px 20px rgba(60, 40, 20, 0.18);
+  transform: translateX(-50%);
+}
+.mw-tip[hidden] { display: none; }
+.mw-tip.pulse { animation: mw-tip-in 0.35s ease; }
+@keyframes mw-tip-in {
+  from { transform: translateX(-50%) scale(0.96); opacity: 0.4; }
+}
+.mw-tip-step {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--mw-wine);
+}
+.mw-tip-text {
+  margin: 2px 0 4px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.mw-skip {
+  border: none;
+  background: none;
+  padding: 4px 8px;
+  font-size: 13px !important;
+  color: #8c7a66 !important;
+  text-decoration: underline;
+}
+
+/* ---------- 倒數 ---------- */
+.mw-count {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  font-family: var(--font-en-serif, serif);
+  font-weight: 700;
+  font-size: 84px;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow: 0 4px 0 var(--mw-wine), 0 8px 20px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.mw-count.show { animation: mw-count 0.7s ease-out forwards; }
+@keyframes mw-count {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
+  25% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+
+/* ---------- 標題、結果、暫停：下方的卡片 ---------- */
+.mw-panel {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  width: min(calc(100% - 32px), 420px);
+  padding: 20px 20px 18px;
+  border-radius: 22px;
+  background: rgba(255, 250, 240, 0.96);
+  box-shadow: 0 10px 34px rgba(60, 40, 20, 0.25);
+  transform: translate(-50%, 24px);
+  opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.2, 1.2, 0.4, 1), opacity 0.25s ease;
+}
+.mw-panel[hidden] { display: none; }
+.mw-panel.show {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+.mw-eyebrow {
+  font-family: var(--font-en-serif, serif);
+  font-size: 13px;
+  letter-spacing: 0.25em;
+  color: #8c8075;
+}
+.mw-title {
+  margin: 2px 0 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #423b35;
+}
+.mw-body {
+  font-size: 15px;
+  color: var(--mw-ink);
+}
+.mw-body p + p { margin-top: 4px; }
+.mw-body b {
+  font-size: 1.25em;
+  color: var(--mw-wine);
+}
+.mw-note {
+  font-size: 13px;
+  color: #8c7a66;
+}
+.mw-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.mw-btn {
+  flex: 1;
+  min-height: 46px;
+  padding: 8px 12px;
+  border: 1.5px solid #d9cbb6;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 15px !important;
+  font-weight: 600;
+}
+.mw-btn.primary {
+  border-color: transparent;
+  background: var(--mw-wine);
+  color: #fff !important;
+  box-shadow: 0 4px 0 #8a4136;
+}
+.mw-btn:active { transform: translateY(2px); }
+.mw-btn.primary:active { box-shadow: 0 2px 0 #8a4136; }
+
+/* 抵達公園：彩色紙花 */
+.mw.confetti::before {
+  content: '';
+  position: absolute;
+  inset: -20% 0 auto;
+  height: 140%;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle, #e8384f 3px, transparent 4px),
+    radial-gradient(circle, #ffd23f 3px, transparent 4px),
+    radial-gradient(circle, #7fa37a 3px, transparent 4px),
+    radial-gradient(circle, #8fb3c9 3px, transparent 4px);
+  background-size: 90px 110px, 70px 130px, 110px 90px, 80px 120px;
+  background-position: 0 0, 30px 40px, 60px 10px, 15px 70px;
+  animation: mw-confetti 3s linear infinite;
+  z-index: 1;
+}
+@keyframes mw-confetti {
+  from { transform: translateY(-15%); }
+  to { transform: translateY(15%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mw-bubble.show,
+  .mw-star,
+  .mw.confetti::before { animation: none; }
+}
