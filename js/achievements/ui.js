@@ -53,6 +53,12 @@ const formatDate = (ms) => {
   return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
 };
 
+const pad = (n) => String(n).padStart(2, '0');
+const formatDateTime = (ms) => {
+  const d = new Date(ms);
+  return `${formatDate(ms)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 export function initAchievements() {
   const root = document.getElementById('ach');
   if (!root) return null;
@@ -122,6 +128,7 @@ export function initAchievements() {
   const showIntro = (show) => {
     intro.hidden = !show;
     $('achRedeemRow').hidden = show;
+    $('achSave').hidden = show;
   };
   $('achIntroOk').addEventListener('click', () => {
     markSeen(INTRO_KEY);
@@ -136,6 +143,7 @@ export function initAchievements() {
     $('achDone').textContent = done;
     $('achTotal').textContent = ACHIEVEMENTS.length;
     $('achRedeem').textContent = REDEEM_NOTE;
+    $('achAsOf').textContent = `截至 ${formatDateTime(Date.now())}`;
     list.replaceChildren(...ACHIEVEMENTS.map(row));
   };
 

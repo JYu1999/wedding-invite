@@ -161,6 +161,30 @@
   color: rgba(251, 244, 232, 0.72);
 }
 
+.ach-asof {
+  margin-top: 2px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  color: rgba(251, 244, 232, 0.5);
+}
+
+/* 請訪客截圖保存：資料只存在這支手機的瀏覽器裡 */
+.ach-save {
+  display: flex;
+  gap: 6px;
+  margin: 8px auto 0;
+  max-width: 340px;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: left;
+  color: rgba(251, 244, 232, 0.72);
+}
+
+.ach-save span {
+  flex: none;
+}
+
 .ach-redeem {
   margin: 12px auto 0;
   max-width: 340px;
@@ -189,6 +213,7 @@
 }
 
 .ach-redeem[hidden],
+.ach-save[hidden],
 .ach-intro[hidden] {
   display: none;
 }
