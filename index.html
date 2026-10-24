@@ -400,13 +400,16 @@
       <h2 class="album-title" id="achTitle">成就</h2>
       <p class="ach-points"><span id="achPoints">0</span><small>分</small></p>
       <p class="ach-done">已完成 <span id="achDone">0</span> / <span id="achTotal">0</span> 個成就</p>
-      <!-- 第一次打開時的說明：按「知道了」收起，之後點 ⓘ 可以再看一次 -->
+      <!-- 打開清單的時間：截圖保存時一起留下日期 -->
+      <p class="ach-asof" id="achAsOf"></p>
+      <!-- 第一次打開時的說明：按「知道了」收起，之後點 ⓘ 可以再看一次（說明打開時，底下的兌換說明與截圖提醒先收起來） -->
       <div class="ach-intro" id="achIntro" hidden>
         <p class="ach-intro-title">成就怎麼玩？</p>
         <ol class="ach-intro-steps">
           <li><span aria-hidden="true">🔍</span>在網站裡到處逛逛、玩扭蛋和小遊戲，完成任務就能解鎖成就</li>
           <li><span aria-hidden="true">🏅</span>每個成就都有分數，解鎖越多、積分越高</li>
           <li><span aria-hidden="true">🎁</span>婚禮當天出示這個畫面，就能用積分兌換小禮物</li>
+          <li><span aria-hidden="true">📸</span>為避免資料遺失，記得截圖保存喔！</li>
         </ol>
         <button class="gacha-btn gacha-btn--primary" id="achIntroOk" type="button">知道了</button>
       </div>
@@ -414,6 +417,8 @@
         <span id="achRedeem"></span>
         <button class="ach-help" id="achHelp" type="button" aria-label="成就怎麼玩？">ⓘ</button>
       </p>
+      <!-- 進度存在瀏覽器（localStorage）裡，換手機、清除瀏覽資料就會不見：請訪客截圖保存 -->
+      <p class="ach-save" id="achSave"><span aria-hidden="true">📸</span>為避免資料遺失，記得截圖保存喔！</p>
       <ul class="ach-list" id="achList"></ul>
     </div>
   </div>
