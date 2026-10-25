@@ -31,6 +31,7 @@ export const REDEEM_NOTE = '婚禮當天出示這個畫面，就能用積分兌�
 
 // 「帶麻吉去公園」的距離成就（公園在 1000 公尺外）
 export const WALK_SHORT_METERS = 100;
+export const WALK_TINY_METERS = 40;
 
 // 麻吉、令狗的照片：檔名有「麻吉」「令狗」的扭蛋照片，之後新增的照片也會算進去
 const files = (filter) => LOTTERY_PHOTOS.filter(filter).map((p) => p.file);
@@ -59,6 +60,7 @@ export const ACHIEVEMENTS = [
   { id: 'walk-600', name: '遛狗達人', desc: '「帶麻吉去公園」走到 600 公尺', points: 50, icon: '🦮', tier: 'silver', stat: 'walkMeters', goal: 600 },
   { id: 'walk-park', name: '抵達公園', desc: '「帶麻吉去公園」平安走到 1000 公尺外的公園', points: 100, icon: '🏞️', tier: 'rainbow', stat: 'walkMeters', goal: 1000 },
   { id: 'walk-short', name: '出師未捷', desc: `「帶麻吉去公園」走不到 ${WALK_SHORT_METERS} 公尺就結束`, points: 1, icon: '🩹', tier: 'bronze', stat: 'walkShort', goal: 1 },
+  { id: 'walk-tiny', name: '寸步難行', desc: `「帶麻吉去公園」走不到 ${WALK_TINY_METERS} 公尺就結束`, points: 0.87, icon: '🐌', tier: 'bronze', stat: 'walkTiny', goal: 1 },
 
   // ---------- 首頁 ----------
   { id: 'gallery-all', name: '婚紗鑑賞家', desc: '放大看過每一張婚紗照', points: 20, icon: '💍', tier: 'silver', stat: 'gallery', goal: GALLERY_ALL.length, count: within(GALLERY_ALL) },
