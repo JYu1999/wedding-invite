@@ -19,7 +19,7 @@ import { isTouch } from '../device.js';
 import { load, save, seen, markSeen } from '../storage.js';
 import { rand } from './kit.js';
 import { increment, recordMax } from '../achievements/progress.js';
-import { WALK_SHORT_METERS } from '../achievements/list.js';
+import { WALK_SHORT_METERS, WALK_TINY_METERS } from '../achievements/list.js';
 
 const GOAL = 1000;            // 公園在幾公尺外
 const LIVES = 5;
@@ -829,6 +829,7 @@ export function createGame(root, { onClose } = {}) {
     if (record) save(BEST_KEY, { meters: Math.max(m, best.meters), seconds: won ? Math.min(elapsed, best.seconds ?? Infinity) : best.seconds });
     recordMax('walkMeters', m);
     if (!won && m < WALK_SHORT_METERS) increment('walkShort');
+    if (!won && m < WALK_TINY_METERS) increment('walkTiny');
     return { m, best: load(BEST_KEY, best), record };
   };
 

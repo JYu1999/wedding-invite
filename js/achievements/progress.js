@@ -70,7 +70,8 @@ export function onUnlock(fn) {
   listeners.add(fn);
 }
 
-export const totalPoints = () => ACHIEVEMENTS.filter(isUnlocked).reduce((sum, a) => sum + a.points, 0);
+// 有小數點的分數（0.87）加起來會有浮點誤差，四捨五入到小數兩位
+export const totalPoints = () => Math.round(ACHIEVEMENTS.filter(isUnlocked).reduce((sum, a) => sum + a.points, 0) * 100) / 100;
 export const unseenCount = () => ACHIEVEMENTS.filter((a) => isUnlocked(a) && !seen.has(a.id)).length;
 export const isUnseen = (a) => isUnlocked(a) && !seen.has(a.id);
 
