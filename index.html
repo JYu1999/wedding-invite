@@ -29,6 +29,7 @@
   <link rel="stylesheet" href="css/album.css">
   <link rel="stylesheet" href="css/achievements.css">
   <link rel="stylesheet" href="css/maji-walk.css">
+  <link rel="stylesheet" href="css/linggou-skate.css">
   <!-- 日夜循環配色：要放最後，蓋過各區塊的白天配色 -->
   <link rel="stylesheet" href="css/day-night.css">
 
@@ -289,8 +290,8 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14"/></svg>
         儲存照片
       </button>
-      <!-- 照片有附加動作時才顯示（扭蛋圖鑑裡麻吉的照片：帶麻吉去公園） -->
-      <button class="lightbox-action" id="lightboxAction" type="button" hidden></button>
+      <!-- 照片有附加動作時才放按鈕進來（扭蛋圖鑑裡麻吉的照片：帶麻吉去公園；令狗的照片：跟令狗一起收集紅蘿蔔） -->
+      <span class="lightbox-actions" id="lightboxActions"></span>
     </div>
 
     <!-- 第一次打開時的操作提示：手指左右滑的示範動畫 -->
@@ -358,6 +359,8 @@
       <div class="gacha-actions">
         <!-- 扭到麻吉的照片才顯示：開啟「帶麻吉去公園」小遊戲 -->
         <button class="gacha-btn gacha-btn--walk" id="gachaWalk" type="button" hidden>帶麻吉去公園 🐾</button>
+        <!-- 扭到令狗的照片才顯示：開啟「跟令狗一起收集紅蘿蔔」小遊戲 -->
+        <button class="gacha-btn gacha-btn--walk gacha-btn--skate" id="gachaSkate" type="button" hidden>跟令狗一起收集紅蘿蔔 🥕</button>
         <button class="gacha-btn gacha-btn--primary" id="gachaSave" type="button" hidden>儲存照片</button>
         <button class="gacha-btn" id="gachaAgain" type="button" hidden>再扭一次</button>
         <button class="gacha-btn" id="gachaExit" type="button" hidden>退出</button>

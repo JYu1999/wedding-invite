@@ -272,8 +272,19 @@
   transition: transform 0.15s ease;
 }
 
-.lightbox-save[hidden] + .lightbox-action {
+/* 按鈕由 js 放進 .lightbox-actions，容器本身不佔位置，按鈕跟儲存鈕排在同一列 */
+.lightbox-actions {
+  display: contents;
+}
+
+.lightbox-save[hidden] + .lightbox-actions .lightbox-action:first-child {
   margin-left: 0;
+}
+
+/* 跟令狗一起收集紅蘿蔔：紅蘿蔔橘 */
+.lightbox-action--carrot {
+  background: linear-gradient(135deg, #f7a45c, #e2702a);
+  box-shadow: 0 6px 18px rgba(226, 112, 42, 0.35);
 }
 
 .lightbox-action:active {

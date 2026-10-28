@@ -173,6 +173,16 @@
   background: linear-gradient(135deg, #acd4a5, #7fa878);
 }
 
+/* 跟令狗一起收集紅蘿蔔：紅蘿蔔橘 */
+.gacha-btn--skate {
+  background: linear-gradient(135deg, #f7a45c, #e2702a);
+  box-shadow: 0 6px 18px rgba(226, 112, 42, 0.4);
+}
+
+.gacha-btn--skate:hover {
+  background: linear-gradient(135deg, #f9b577, #e8803d);
+}
+
 .gacha-btn:disabled {
   opacity: 0.5;
   cursor: default;
