@@ -196,7 +196,7 @@ export function createGame(root, { onClose } = {}) {
     run = {
       lives: T.lives, score: 0, wave: 1, waveT: 0, bonus: false, time: 0,
       combo: 0, fever: 0, feverCount: 0, hot: false, hotT: 0, nextHot: rand(16, 22),
-      timers: { carrot: 0.6, bomb: 4, pig: rand(6, 10), maji: rand(5, 9), gold: rand(18, 26), heart: rand(25, 35) },
+      timers: { carrot: 0.6, bomb: 4, pig: rand(6, 10), maji: rand(3, 6), gold: rand(18, 26), heart: rand(25, 35) },
       stats: { score: 0, air: 0, triple: 0, wave: 1, fever: 0, gold: 0, ride: 0, pig: 0, recover: 0, hot: 0, nohit: 0, rim: 0, dodge: 0, caught: 0, stolen: 0, slips: 0, bombs: 0, walls: 0, maxDrop: 0 },
       noHitT: 0, completed: new Set(), boxFill: 0,
     };
@@ -427,8 +427,9 @@ export function createGame(root, { onClose } = {}) {
     const w = run.wave;
     const tm = run.timers;
     const feverMul = run.fever > 0 ? 2 : 1;
-    const carrotGap = run.bonus ? 0.3 : Math.max(0.55, 1.6 - 0.12 * (w - 1));
-    if ((tm.carrot -= dt * feverMul) <= 0 && items.carrots.length < (w === 1 ? 4 : 8) * feverMul) { spawnCarrot(); tm.carrot = carrotGap * rand(0.75, 1.25); }
+    // 紅蘿蔔：第 1 波約 2.2 秒一根，越後面越快，最快 0.85 秒；場上同時最多 3（第 1 波）／6 根
+    const carrotGap = run.bonus ? 0.4 : Math.max(0.85, 2.2 - 0.1 * (w - 1));
+    if ((tm.carrot -= dt * feverMul) <= 0 && items.carrots.length < (w === 1 ? 3 : 6) * feverMul) { spawnCarrot(); tm.carrot = carrotGap * rand(0.75, 1.25); }
     if (w >= 2 && !run.bonus && (tm.bomb -= dt) <= 0) {
       const x = rand(40, W - 40);
       items.warns.push({ x, t: 0.9, el: warnEl(x) });
@@ -438,7 +439,11 @@ export function createGame(root, { onClose } = {}) {
     if (run.lives < T.lives && (tm.heart -= dt) <= 0) { spawnHeart(); tm.heart = rand(28, 38); }
     const calm = dog.mode === 'normal' && dog.hurtT <= 0;
     if (w >= 3 && !run.bonus && !items.pig && calm && (tm.pig -= dt) <= 0) { spawnPig(); tm.pig = rand(16, 24); }
-    if (w >= 4 && !run.bonus && !items.maji && dog.carry.length && calm && (tm.maji -= dt) <= 0) { spawnMaji(); tm.maji = rand(16, 26); }
+    // 麻吉：第 4 波起每 8～13 秒來一次；時間到了，等令狗背著紅蘿蔔就衝進來
+    if (w >= 4 && !run.bonus && !items.maji) {
+      tm.maji -= dt;
+      if (tm.maji <= 0 && dog.carry.length && calm) { spawnMaji(); tm.maji = rand(8, 13); }
+    }
     // 炸彈的警告標誌倒數完才掉下來
     items.warns = items.warns.filter((wn) => {
       wn.t -= dt;
