@@ -981,7 +981,7 @@ export function createGame(root, { onClose } = {}) {
     if (state.mode !== 'play' && state.mode !== 'tutorial' && state.mode !== 'count') return;
     state.pausedFrom = state.mode === 'count' ? 'count' : state.mode;
     state.mode = 'pause';
-    for (const k of ['left', 'right', 'jump']) input[k] = false;
+    releaseAll();
     $('.ls-pause-info').textContent = state.pausedFrom === 'tutorial' ? '教學中' : `目前 ${run.score} 根・第 ${run.wave} 波`;
     showPanel('pause');
     $('.ls-resume').focus({ preventScroll: true });
@@ -1051,24 +1051,46 @@ export function createGame(root, { onClose } = {}) {
   });
 
   // ---------- 輸入：螢幕按鍵（可以同時按）、鍵盤 ----------
+  // 每根手指按著哪顆鍵記在 held，鍵盤按著的記在 keys；input 每次從這兩個重新算，按鍵不會卡住
+  // 以前靠按鍵自己收「放開」，iPhone 跳出放大鏡、選單時手指被系統搶走，收不到放開，
+  // 那顆鍵就一直算按著（右鍵卡住時，按左鍵左右抵消，看起來就像左鍵壞了）；現在多了三道保險：
+  //   在哪裡放開都算放開、手指全部離開螢幕就全部放開、第一根手指按下時先清掉之前沒放開的
   const held = new Map();
-  const setKey = (key, on) => {
-    if (key === 'jump' && on && !input.jump) input.jumpPressed = true;
-    input[key] = on;
+  const keys = new Set();
+  const padButtons = [...root.querySelectorAll('.ls-pad button')];
+  const syncKeys = () => {
+    const on = new Set([...held.values(), ...keys]);
+    if (on.has('jump') && !input.jump) input.jumpPressed = true;
+    for (const k of ['left', 'right', 'jump']) input[k] = on.has(k);
+    padButtons.forEach((b) => b.classList.toggle('down', held.size > 0 && [...held.values()].includes(b.dataset.key)));
   };
-  root.querySelectorAll('.ls-pad button').forEach((b) => {
-    const key = b.dataset.key;
-    b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); held.set(e.pointerId, key); b.classList.add('down'); setKey(key, true); });
-    const up = (e) => {
-      if (held.get(e.pointerId) !== key) return;
-      held.delete(e.pointerId);
-      b.classList.remove('down');
-      if (![...held.values()].includes(key)) setKey(key, false);
-    };
-    b.addEventListener('pointerup', up);
-    b.addEventListener('pointercancel', up);
+  const releaseAll = () => {
+    held.clear();
+    keys.clear();
+    syncKeys();
+  };
+  padButtons.forEach((b) => {
+    b.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (e.isPrimary) held.clear();
+      held.set(e.pointerId, b.dataset.key);
+      syncKeys();
+    });
     b.addEventListener('contextmenu', (e) => e.preventDefault());
   });
+  // 按著 ◀ 或 ▶ 的手指滑到另一顆，就換方向（不用放開再按）
+  const onPointerMove = (e) => {
+    const key = held.get(e.pointerId);
+    if (key !== 'left' && key !== 'right') return;
+    const over = document.elementFromPoint(e.clientX, e.clientY)?.closest('.ls-pad button')?.dataset.key;
+    if ((over === 'left' || over === 'right') && over !== key) {
+      held.set(e.pointerId, over);
+      syncKeys();
+    }
+  };
+  const onPointerUp = (e) => { if (held.delete(e.pointerId)) syncKeys(); };
+  const onTouchEnd = (e) => { if (!e.touches.length && held.size) { held.clear(); syncKeys(); } };
+
   // iPhone：連續點按鍵會被當成雙擊、長按，Safari 跳出放大鏡、「選取」選單或選起文字，擋住遊戲（跟帶麻吉去公園同一個問題）
   // 光靠 CSS 的 user-select: none 擋不完，直接取消觸控的預設動作，上面的 pointer 事件照樣會送來
   // 不擋的：選單上要點的按鈕、標題結算畫面的捲動、請玩家往上滑收網址列的提示
@@ -1088,9 +1110,15 @@ export function createGame(root, { onClose } = {}) {
       return;
     }
     const k = KEYMAP[e.code];
-    if (k && (state.mode === 'play' || state.mode === 'tutorial')) { e.preventDefault(); if (!e.repeat) setKey(k, true); }
+    if (k && (state.mode === 'play' || state.mode === 'tutorial')) {
+      e.preventDefault();
+      if (!e.repeat) { keys.add(k); syncKeys(); }
+    }
   };
-  const onKeyUp = (e) => { const k = KEYMAP[e.code]; if (k) setKey(k, false); };
+  const onKeyUp = (e) => {
+    const k = KEYMAP[e.code];
+    if (k && keys.delete(k)) syncKeys();
+  };
   const onHidden = () => { if (document.hidden) pause(); };
   const portrait = matchMedia('(orientation: portrait) and (max-width: 820px)');
   const onPortrait = (e) => { if (e.matches) pause(); };
@@ -1107,6 +1135,13 @@ export function createGame(root, { onClose } = {}) {
     document.addEventListener('visibilitychange', onHidden);
     portrait.addEventListener('change', onPortrait);
     addEventListener('resize', checkBars);
+    addEventListener('pointermove', onPointerMove);
+    addEventListener('pointerup', onPointerUp);
+    addEventListener('pointercancel', onPointerUp);
+    addEventListener('touchend', onTouchEnd);
+    addEventListener('touchcancel', onTouchEnd);
+    addEventListener('blur', releaseAll);
+    releaseAll();
     swipeSkipped = false;
     updateFsButtons();
     checkBars();
@@ -1123,6 +1158,13 @@ export function createGame(root, { onClose } = {}) {
     document.removeEventListener('visibilitychange', onHidden);
     portrait.removeEventListener('change', onPortrait);
     removeEventListener('resize', checkBars);
+    removeEventListener('pointermove', onPointerMove);
+    removeEventListener('pointerup', onPointerUp);
+    removeEventListener('pointercancel', onPointerUp);
+    removeEventListener('touchend', onTouchEnd);
+    removeEventListener('touchcancel', onTouchEnd);
+    removeEventListener('blur', releaseAll);
+    releaseAll();
     hideSwipe();
     onClose?.();
   }
