@@ -2,7 +2,7 @@
 // 側面看的碗形溜冰場（像洛克人、卡比那樣的 2D 畫面），手機橫著玩
 // 令狗穿冰刀鞋在冰上滑（有慣性、衝太快會滑倒、衝出坡頂會撞牆），接住天上掉下來的紅蘿蔔，
 // 踩著跳台跳到最上面，放進紅蘿蔔箱；一次放越多越划算（1 / 3 / 6 分），3 條命用完就結束
-// 干擾：炸彈（第 2 波起）、小豬（第 3 波起，令狗會失控衝過去）、麻吉（第 4 波起，搶背著的紅蘿蔔）
+// 干擾：炸彈（第 2 波起，碰到就爆，沒碰到過一陣子會熄掉）、小豬（第 3 波起，令狗會失控衝過去）、麻吉（第 4 波起，搶背著的紅蘿蔔）
 // 好東西：愛心、黃金紅蘿蔔、連續接住 12 根的 FEVER、每 5 波一次的紅蘿蔔雨；後面的關卡跳台會移動
 // 長期目標在 progress.js：任務、令狗等級、升級解鎖的造型
 // 流程：標題 → 教學（第一次玩，在遊戲畫面裡邊玩邊學）→ 倒數 → 開始 → 命用完 → 結算
@@ -26,7 +26,7 @@ const T = {
   groundTime: 6,                 // 掉在冰上的紅蘿蔔留幾秒（最後 1.5 秒閃爍）
   feverNeed: 12, feverTime: 8,
   waveTime: 30, bonusTime: 15,   // 每 5 波一次紅蘿蔔雨
-  bombFuse: 1.5, bombR: 58,
+  bombLife: 5, bombR: 46,         // 落地的炸彈留幾秒（最後 1 秒閃爍，沒碰到就熄掉）；爆炸時炸飛附近紅蘿蔔的範圍
   pigTime: 2.4, majiSpeed: 232, majiFlee: 280,
   scale: 0.27,                   // 令狗圖的放大倍數（原圖 250 寬）
 };
@@ -45,7 +45,7 @@ const TUTORIAL = [
   { text: '接住掉下來的紅蘿蔔，接 2 根', spawn: true, done: (g) => g.dog.carry.length >= 2 },
   { text: '再跳一次，跳到最上面的跳台', coach: ['jump'], done: (g) => g.dog.plat?.top },
   { text: '走到箱子旁邊，紅蘿蔔就放進去了', done: (g) => g.tut.deposited },
-  { text: '速度表到紅色太久會滑倒，撞牆、炸彈也會少一條命。你有 3 條命，加油！', info: true },
+  { text: '速度表到紅色太久會滑倒，撞牆、碰到炸彈也會少一條命。你有 3 條命，加油！', info: true },
 ];
 
 const TEMPLATE = `
@@ -179,7 +179,14 @@ export function createGame(root, { onClose } = {}) {
   let dogEl = null, dogKey = '', hudKey = '';
   const tut = { step: 0, moved: 0, deposited: false, wait: 0, spawnT: 0 };
 
+  // 收起教學的提示卡和手指：教學做完、略過，或中途回標題、重新開始都要收，不然手指會一直留在按鍵上
+  function clearTutorial() {
+    tipEl.hidden = true;
+    root.querySelectorAll('.ls-pad button').forEach((b) => b.classList.remove('ls-coach'));
+  }
+
   function reset(tutorial) {
+    clearTutorial();
     dog = {
       x: tutorial ? 140 : 400, y: FLOOR, v: 0, vx: 0, vy: 0, ground: true, plat: null, face: 1,
       carry: [], hurtT: 0, slip: 0, mode: 'normal', modeT: 0, rimArmed: true,
@@ -189,7 +196,7 @@ export function createGame(root, { onClose } = {}) {
     run = {
       lives: T.lives, score: 0, wave: 1, waveT: 0, bonus: false, time: 0,
       combo: 0, fever: 0, feverCount: 0, hot: false, hotT: 0, nextHot: rand(16, 22),
-      timers: { carrot: 0.6, bomb: 4, pig: rand(6, 10), maji: rand(5, 9), gold: rand(18, 26), heart: rand(25, 35) },
+      timers: { carrot: 0.6, bomb: 4, pig: rand(6, 10), maji: rand(3, 6), gold: rand(18, 26), heart: rand(25, 35) },
       stats: { score: 0, air: 0, triple: 0, wave: 1, fever: 0, gold: 0, ride: 0, pig: 0, recover: 0, hot: 0, nohit: 0, rim: 0, dodge: 0, caught: 0, stolen: 0, slips: 0, bombs: 0, walls: 0, maxDrop: 0 },
       noHitT: 0, completed: new Set(), boxFill: 0,
     };
@@ -411,7 +418,7 @@ export function createGame(root, { onClose } = {}) {
     const changed = layout !== layoutForWave(run.wave - 1, wasBonus);
     plats.set(layout);
     sfx.wave();
-    const intro = { 2: '炸彈來了！', 3: '小豬出沒！', 4: '麻吉來搶紅蘿蔔！' }[run.wave];
+    const intro = { 2: '炸彈來了！別碰到它', 3: '小豬出沒！', 4: '麻吉來搶紅蘿蔔！' }[run.wave];
     const sub = run.bonus ? '紅蘿蔔雨！盡量接！' : [intro, changed ? LAYOUTS[layout].name : ''].filter(Boolean).join('　') || '越來越快了！';
     banner(`第 ${run.wave} 波<small>${sub}</small>`, 2);
   }
@@ -420,18 +427,23 @@ export function createGame(root, { onClose } = {}) {
     const w = run.wave;
     const tm = run.timers;
     const feverMul = run.fever > 0 ? 2 : 1;
-    const carrotGap = run.bonus ? 0.3 : Math.max(0.55, 1.6 - 0.12 * (w - 1));
-    if ((tm.carrot -= dt * feverMul) <= 0 && items.carrots.length < (w === 1 ? 4 : 8) * feverMul) { spawnCarrot(); tm.carrot = carrotGap * rand(0.75, 1.25); }
+    // 紅蘿蔔：第 1 波約 2.2 秒一根，越後面越快，最快 0.85 秒；場上同時最多 3（第 1 波）／6 根
+    const carrotGap = run.bonus ? 0.4 : Math.max(0.85, 2.2 - 0.1 * (w - 1));
+    if ((tm.carrot -= dt * feverMul) <= 0 && items.carrots.length < (w === 1 ? 3 : 6) * feverMul) { spawnCarrot(); tm.carrot = carrotGap * rand(0.75, 1.25); }
     if (w >= 2 && !run.bonus && (tm.bomb -= dt) <= 0) {
       const x = rand(40, W - 40);
       items.warns.push({ x, t: 0.9, el: warnEl(x) });
-      tm.bomb = Math.max(1.5, 5.4 - 0.5 * (w - 2)) * rand(0.8, 1.2);
+      tm.bomb = Math.max(1.2, 4.4 - 0.45 * (w - 2)) * rand(0.8, 1.2);
     }
     if (w >= 3 && (tm.gold -= dt) <= 0) { spawnCarrot(true); tm.gold = rand(20, 28); }
     if (run.lives < T.lives && (tm.heart -= dt) <= 0) { spawnHeart(); tm.heart = rand(28, 38); }
     const calm = dog.mode === 'normal' && dog.hurtT <= 0;
     if (w >= 3 && !run.bonus && !items.pig && calm && (tm.pig -= dt) <= 0) { spawnPig(); tm.pig = rand(16, 24); }
-    if (w >= 4 && !run.bonus && !items.maji && dog.carry.length && calm && (tm.maji -= dt) <= 0) { spawnMaji(); tm.maji = rand(16, 26); }
+    // 麻吉：第 4 波起每 8～13 秒來一次；時間到了，等令狗背著紅蘿蔔就衝進來
+    if (w >= 4 && !run.bonus && !items.maji) {
+      tm.maji -= dt;
+      if (tm.maji <= 0 && dog.carry.length && calm) { spawnMaji(); tm.maji = rand(8, 13); }
+    }
     // 炸彈的警告標誌倒數完才掉下來
     items.warns = items.warns.filter((wn) => {
       wn.t -= dt;
@@ -486,8 +498,6 @@ export function createGame(root, { onClose } = {}) {
   }
   function finishTutorial() {
     markSeen(TUTORIAL_KEY);
-    tipEl.hidden = true;
-    root.querySelectorAll('.ls-pad button').forEach((b) => b.classList.remove('ls-coach'));
     startRun();
   }
 
@@ -616,24 +626,24 @@ export function createGame(root, { onClose } = {}) {
     items.carrots = items.carrots.filter((c) => !c.gone);
   }
 
-  // ---------- 炸彈：落地後沿著斜坡滾到碗底，引信燒完就爆 ----------
+  // ---------- 炸彈：令狗碰到就爆；落地後沿著斜坡滾到碗底，沒碰到過一陣子會熄掉 ----------
   function spawnBomb(x) {
     const b = { x, y: -20, vy: 220, v: 0, state: 'fall', t: 0 };
     b.el = el('g', layer.items);
     b.el.innerHTML = bombSVG();
-    b.zone = el('circle', layer.items, { r: T.bombR, fill: '#e2524a', 'fill-opacity': 0.1, stroke: '#e2524a', 'stroke-dasharray': '5 4', 'stroke-width': 2, opacity: 0 });
     items.bombs.push(b);
   }
   function explode(b) {
     b.gone = true;
     b.el.remove();
-    b.zone.remove();
     sfx.boom();
     ring(b.x, b.y - 8, T.bombR, '#ff8a00');
     popup(b.x, b.y - 30, '碰！', '#e2524a', 26);
-    if (Math.hypot(dog.x - b.x, dog.y - 24 - b.y) < T.bombR + 8) hurt('bomb', Math.sign(dog.x - b.x || 1) * 220);
+    hurt('bomb', Math.sign(dog.x - b.x || 1) * 220);
     for (const c of items.carrots) if (c.state === 'ground' && Math.hypot(c.x - b.x, c.y - b.y) < T.bombR) { c.gone = true; c.el.remove(); }
   }
+  // 令狗身體碰到炸彈；剛受傷閃爍的時候穿過去不算
+  const touchingBomb = (b) => dog.hurtT <= 0 && Math.hypot(dog.x - b.x, dog.y - 24 - (b.y - 10)) < 32;
   function updateBombs(dt) {
     for (const b of items.bombs) {
       if (b.gone) continue;
@@ -641,9 +651,9 @@ export function createGame(root, { onClose } = {}) {
         const yPrev = b.y;
         b.vy += 500 * dt;
         b.y += b.vy * dt;
-        if (Math.hypot(dog.x - b.x, dog.y - 26 - b.y) < 26) { explode(b); continue; }
+        if (touchingBomb(b)) { explode(b); continue; }
         const hit = surfaceAt(plats.list, b.x, yPrev, b.y);
-        if (hit) { b.state = 'fuse'; b.y = hit.y; b.plat = hit.plat; b.t = T.bombFuse; b.zone.setAttribute('opacity', 1); }
+        if (hit) { b.state = 'ground'; b.y = hit.y; b.plat = hit.plat; b.t = T.bombLife; }
       } else {
         if (b.plat) {
           b.x += b.plat.dx;
@@ -660,9 +670,14 @@ export function createGame(root, { onClose } = {}) {
             b.y = groundY(b.x);
           }
         }
+        if (touchingBomb(b)) { explode(b); continue; }
         b.t -= dt;
-        b.zone.setAttribute('opacity', Math.sin(b.t * (b.t < 0.6 ? 40 : 16)) > 0 ? 1 : 0.4);
-        if (b.t <= 0) explode(b);
+        // 沒碰到：引信熄掉，冒一縷煙就消失
+        if (b.t <= 0) {
+          b.gone = true;
+          b.el.remove();
+          popup(b.x, b.y - 30, '噗⋯', '#8a8f9c', 16);
+        }
       }
     }
     items.bombs = items.bombs.filter((b) => !b.gone);
@@ -844,8 +859,7 @@ export function createGame(root, { onClose } = {}) {
     }
     for (const b of items.bombs) {
       b.el.setAttribute('transform', `translate(${b.x.toFixed(1)} ${b.y.toFixed(1)}) rotate(${((b.x * 2) % 360).toFixed(0)})`);
-      b.zone.setAttribute('cx', b.x.toFixed(1));
-      b.zone.setAttribute('cy', (b.y - 10).toFixed(1));
+      b.el.setAttribute('opacity', b.state === 'ground' && b.t < 1 && Math.sin(b.t * 30) > 0 ? 0.35 : 1);
     }
     for (const h of items.hearts) h.el.setAttribute('transform', `translate(${h.x.toFixed(1)} ${(h.y + Math.sin(h.t * 4) * 3).toFixed(1)})`);
 
@@ -988,7 +1002,7 @@ export function createGame(root, { onClose } = {}) {
   function home() {
     state.mode = 'title';
     hud.hidden = true;
-    tipEl.hidden = true;
+    clearTutorial();
     renderTitle();
     showPanel('title');
   }
