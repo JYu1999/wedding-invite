@@ -14,6 +14,8 @@ import { progress, missionAt } from './progress.js';
 import { haptic } from '../fx/haptics.js';
 import { seen, markSeen } from '../storage.js';
 import { increment, recordMax } from '../achievements/progress.js';
+import { isTouch } from '../device.js';
+import { canFullscreen, isFullscreen, enterFullscreen, onFullscreenChange, iosBarsShowing } from './fullscreen.js';
 
 // ---------- 可以調整的數值 ----------
 const T = {
@@ -50,6 +52,10 @@ const TUTORIAL = [
 
 const TEMPLATE = `
   <div class="ls-rotate"><p><span>📱</span>把手機轉成橫的玩<br><small>溜冰場比較大，左右手也比較好按</small></p></div>
+  <div class="ls-swipe" hidden>
+    <p><span>👆</span>往上滑一下，把網址列收起來<br><small>畫面會變大，比較好玩</small></p>
+    <button type="button" class="ls-swipe-skip">先不用</button>
+  </div>
   <div class="ls-game">
     <svg class="ls-stage" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <g class="ls-bg"></g><g class="ls-plats"></g><g class="ls-items"></g><g class="ls-actors"></g><g class="ls-fx"></g>
@@ -63,6 +69,7 @@ const TEMPLATE = `
       <div class="ls-score"><b>0</b><small>最佳 0</small></div>
       <div class="ls-hud-right">
         <div class="ls-chip ls-wave">第 1 波</div>
+        <button type="button" class="ls-fs ls-fs-hud" aria-label="全螢幕" hidden>⛶</button>
         <button type="button" class="ls-pause" aria-label="暫停">❚❚</button>
       </div>
       <div class="ls-toast" role="status"></div>
@@ -84,6 +91,7 @@ const TEMPLATE = `
     </div>
 
     <section class="ls-panel ls-title-panel">
+      <button type="button" class="ls-icon-btn ls-fs ls-fs-title" aria-label="全螢幕" hidden>⛶</button>
       <button type="button" class="ls-icon-btn ls-mute" aria-label="音效開關">🔊</button>
       <button type="button" class="ls-icon-btn ls-close" aria-label="離開小遊戲">✕</button>
       <div class="ls-cols">
@@ -951,6 +959,7 @@ export function createGame(root, { onClose } = {}) {
   // =====================================================================
   function showPanel(name) {
     Object.entries(panels).forEach(([k, p]) => { p.hidden = k !== name; });
+    checkBars();
   }
   function startRun() {
     reset(false);
@@ -993,12 +1002,44 @@ export function createGame(root, { onClose } = {}) {
     showPanel('title');
   }
 
+  // ---------- 讓畫面變大：全螢幕，或請 iPhone 玩家往上滑收起網址列 ----------
+  // 手機上按下開始時順便進全螢幕（要在點擊當下才會答應）
+  const goBig = () => { if (isTouch()) enterFullscreen(root); };
+  const updateFsButtons = () => {
+    const show = canFullscreen() && !isFullscreen();
+    root.querySelectorAll('.ls-fs').forEach((b) => { b.hidden = !show; });
+  };
+  onFullscreenChange(updateFsButtons);
+
+  const swipeEl = $('.ls-swipe');
+  let swipeSkipped = false;
+  // iPhone Safari：網址列還在、而且停在標題／暫停／結算畫面時，請玩家往上滑一下；
+  // 這時讓後面的網頁捲得動（Safari 捲動時才會收起網址列），收起來之後再鎖回去
+  function checkBars() {
+    const onPanel = Object.values(panels).some((p) => !p.hidden);
+    const show = !swipeSkipped && onPanel && iosBarsShowing();
+    if (show === !swipeEl.hidden) return;
+    swipeEl.hidden = !show;
+    root.classList.toggle('ls-swiping', show);
+    document.body.style.overflow = show ? '' : 'hidden';
+    if (show && innerHeight + scrollY >= document.documentElement.scrollHeight - 40) scrollBy(0, -240);
+  }
+  const hideSwipe = () => {
+    if (swipeEl.hidden) return;
+    swipeEl.hidden = true;
+    root.classList.remove('ls-swiping');
+    document.body.style.overflow = 'hidden';
+  };
+
   // ---------- 按鈕 ----------
   root.addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b || !root.contains(b)) return;
+    if (b.matches('[data-go], .ls-again, .ls-restart, .ls-resume, .ls-tip-go')) goBig();
     if (b.dataset.go === 'run') startRun();
     else if (b.dataset.go === 'tutorial') startTutorial();
+    else if (b.matches('.ls-fs')) enterFullscreen(root);
+    else if (b.matches('.ls-swipe-skip')) { swipeSkipped = true; hideSwipe(); }
     else if (b.dataset.cos && !b.disabled) { save.costume = b.dataset.cos; progress.write(); renderTitle(); }
     else if (b.matches('.ls-again, .ls-restart')) startRun();
     else if (b.matches('.ls-home')) home();
@@ -1028,6 +1069,18 @@ export function createGame(root, { onClose } = {}) {
     b.addEventListener('pointercancel', up);
     b.addEventListener('contextmenu', (e) => e.preventDefault());
   });
+  // iPhone：連續點按鍵會被當成雙擊、長按，Safari 跳出放大鏡、「選取」選單或選起文字，擋住遊戲（跟帶麻吉去公園同一個問題）
+  // 光靠 CSS 的 user-select: none 擋不完，直接取消觸控的預設動作，上面的 pointer 事件照樣會送來
+  // 不擋的：選單上要點的按鈕、標題結算畫面的捲動、請玩家往上滑收網址列的提示
+  root.addEventListener('touchstart', (e) => {
+    const t = e.target;
+    if (t.closest('.ls-panel, .ls-swipe, .ls-tip')) return;
+    if (t.closest('button') && !t.closest('.ls-pad')) return;
+    e.preventDefault();
+  }, { passive: false });
+  root.addEventListener('selectstart', (e) => e.preventDefault());
+  root.addEventListener('contextmenu', (e) => e.preventDefault());
+
   const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'jump', ArrowUp: 'jump', KeyW: 'jump', KeyZ: 'jump' };
   const onKeyDown = (e) => {
     if (e.code === 'KeyP' || e.code === 'Escape') {
@@ -1044,6 +1097,8 @@ export function createGame(root, { onClose } = {}) {
 
   // ---------- 開關 ----------
   function open() {
+    // 底下頁面若還有選起來的文字，iPhone 的「拷貝」選單會一直浮在遊戲上面
+    window.getSelection()?.removeAllRanges();
     setMuted(save.muted);
     reset(false);
     home();
@@ -1051,6 +1106,10 @@ export function createGame(root, { onClose } = {}) {
     addEventListener('keyup', onKeyUp);
     document.addEventListener('visibilitychange', onHidden);
     portrait.addEventListener('change', onPortrait);
+    addEventListener('resize', checkBars);
+    swipeSkipped = false;
+    updateFsButtons();
+    checkBars();
     last = performance.now();
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(frame);
@@ -1063,6 +1122,8 @@ export function createGame(root, { onClose } = {}) {
     removeEventListener('keyup', onKeyUp);
     document.removeEventListener('visibilitychange', onHidden);
     portrait.removeEventListener('change', onPortrait);
+    removeEventListener('resize', checkBars);
+    hideSwipe();
     onClose?.();
   }
 

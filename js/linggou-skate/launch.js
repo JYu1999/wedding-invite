@@ -1,11 +1,12 @@
 // 跟令狗一起收集紅蘿蔔：入口
 // 扭到令狗的照片、或在扭蛋圖鑑看令狗的照片時，按「跟令狗一起收集紅蘿蔔」呼叫 openLinggouSkate()
 // 按下去才載入遊戲本體；載入時先蓋上全螢幕畫面、暫停首頁背景音樂，離開後再接著播
-// 遊戲是橫向的：手機上試著進全螢幕並鎖定橫向（Android 可以，iPhone 不行，就請玩家自己轉）
+// 遊戲是橫向的：手機上試著進全螢幕並鎖定橫向（Android 可以；iPhone 不行，就請玩家自己轉，見 fullscreen.js）
 
 import { wakeAudio } from './audio.js';
 import { lockScroll, unlockScroll } from '../scroll-lock.js';
 import { isTouch } from '../device.js';
+import { enterFullscreen, exitFullscreen } from './fullscreen.js';
 
 // 照片檔名有「令狗」就是令狗的照片
 export const isLinggouPhoto = (photo) => !!photo?.name?.includes('令狗');
@@ -20,7 +21,7 @@ const onClose = () => {
   active = false;
   unlockScroll();
   root.classList.remove('open');
-  if (document.fullscreenElement === root) document.exitFullscreen?.().catch(() => {});
+  exitFullscreen();
   setTimeout(() => {
     if (!root.classList.contains('open')) root.hidden = true;
   }, 300);
@@ -53,11 +54,7 @@ export async function openLinggouSkate() {
   lockScroll();
   root.hidden = false;
   requestAnimationFrame(() => root.classList.add('open'));
-  if (isTouch() && root.requestFullscreen) {
-    root.requestFullscreen({ navigationUI: 'hide' })
-      .then(() => screen.orientation?.lock?.('landscape'))
-      .catch(() => {});
-  }
+  if (isTouch()) enterFullscreen(root);
 
   if (!game) {
     root.classList.add('is-loading');
