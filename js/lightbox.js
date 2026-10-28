@@ -1,7 +1,7 @@
 // 全螢幕看照片的燈箱：婚紗剪影與扭蛋圖鑑共用
 // 手指按著照片左右拖，下一張跟著從旁邊滑進來、目前這張縮小淡出；放開時依拖的距離與速度決定切換或彈回
 // 上下拖曳照片可以關閉（像手機相簿）；也可以用 ‹ › 按鈕、鍵盤方向鍵切換，按 ✕、Esc 或點背景關閉
-// 照片設定 download（檔名）時，下方多一顆「儲存照片」按鈕；設定 action 時再多一顆自訂按鈕（例如帶麻吉去公園）
+// 照片設定 download（檔名）時，下方多一顆「儲存照片」按鈕；設定 actions 時再多幾顆自訂按鈕（例如帶麻吉去公園）
 // 照片設定 onShow 時，每次切到這張都會呼叫（婚紗剪影用來記錄看過哪幾張）
 // 第一次打開時疊一層操作提示，開始滑動或幾秒後自動消失；只出現這一次，之後想慢慢欣賞照片也不會再被打擾
 
@@ -50,7 +50,7 @@ export function initLightbox({ watermark } = {}) {
   const caption = document.getElementById('lightboxCaption');
   const coach = document.getElementById('lightboxCoach');
   const saveBtn = document.getElementById('lightboxSave');
-  const actionBtn = document.getElementById('lightboxAction');
+  const actionsEl = document.getElementById('lightboxActions');
   if (!lightbox || !track) return null;
 
   // 三張輪流使用：[上一張, 目前這張, 下一張]
@@ -131,10 +131,18 @@ export function initLightbox({ watermark } = {}) {
     lightbox.classList.toggle('lightbox--save', Boolean(item.download));
     if (saveBtn) saveBtn.hidden = !item.download;
     if (item.download) preloadPhoto(item.src);
-    if (actionBtn) {
-      actionBtn.hidden = !item.action;
-      actionBtn.textContent = item.action?.label ?? '';
-    }
+    actionsEl?.replaceChildren(...(item.actions ?? []).map(({ label, run, tone }) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = tone ? `lightbox-action lightbox-action--${tone}` : 'lightbox-action';
+      btn.textContent = label;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        run();
+      });
+      tapHaptic(btn);
+      return btn;
+    }));
     item.onShow?.();
   };
 
@@ -169,9 +177,9 @@ export function initLightbox({ watermark } = {}) {
     busy = false;
   };
 
-  // items：[{ src, alt, caption?, note?, protect?, watermark?, download?, action?, onShow? }]
+  // items：[{ src, alt, caption?, note?, protect?, watermark?, download?, actions?, onShow? }]
   // protect 預設 true：擋掉右鍵另存與長按選單；watermark: false 不顯示浮水印；download：儲存時的檔名
-  // action：{ label, run }，照片下方多一顆按鈕，按下時呼叫 run
+  // actions：[{ label, run, tone? }]，照片下方多幾顆按鈕，按下時呼叫 run；tone: 'carrot' 是紅蘿蔔橘色
   const open = (list, i = 0) => {
     if (!list.length) return;
     items = list;
@@ -216,7 +224,6 @@ export function initLightbox({ watermark } = {}) {
     const item = items[index];
     if (item?.download) savePhoto({ src: item.src, file: item.download });
   });
-  bind('lightboxAction', () => items[index]?.action?.run());
   // iPhone 點左右鍵時喀一下（手指拖曳切換在 iPhone 上沒有觸覺回饋）
   ['lightboxPrev', 'lightboxNext'].forEach((id) => tapHaptic(document.getElementById(id)));
 

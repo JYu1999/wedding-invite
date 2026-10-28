@@ -1,0 +1,353 @@
+/* ==================== 跟令狗一起收集紅蘿蔔（小遊戲） ==================== */
+/* 橫向 16:9 的遊戲畫面置中，外面是深藍夜色；手機直拿時請玩家轉成橫的 */
+.ls {
+  --ls-ink: #3a2416;
+  --ls-carrot: #e8742a;
+  --ls-gold: #f3c33c;
+  --ls-sans: 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', system-ui, sans-serif;
+  position: fixed;
+  inset: 0;
+  z-index: 10010;   /* 疊在扭蛋機、圖鑑、燈箱之上 */
+  display: grid;
+  place-items: center;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  overflow: hidden;
+  background: #1d2b3a;
+  color: var(--ls-ink);
+  font-family: var(--ls-sans);
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.ls.open { opacity: 1; }
+.ls[hidden] { display: none; }
+.ls button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ls :focus-visible { outline: 3px solid var(--ls-gold); outline-offset: 2px; }
+.ls p, .ls h2, .ls h3, .ls ul { margin: 0; }
+
+/* ---------- 載入中 ---------- */
+.ls-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(#cfe9f6, #f6efe2);
+  font-size: 16px;
+}
+.ls.is-loading .ls-loading { display: flex; }
+.ls-loading-carrots span {
+  display: inline-block;
+  margin: 0 4px;
+  font-size: 26px;
+  animation: ls-hop 1.2s ease-in-out infinite;
+}
+.ls-loading-carrots span:nth-child(2) { animation-delay: 0.2s; }
+.ls-loading-carrots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes ls-hop {
+  0%, 100% { transform: translateY(0); opacity: 0.35; }
+  40% { transform: translateY(-8px); opacity: 1; }
+}
+
+/* ---------- 手機直拿：請轉成橫的 ---------- */
+.ls-rotate {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: none;
+  place-items: center;
+  padding: 24px;
+  background: #1d2b3a;
+  color: #ffffff;
+  text-align: center;
+}
+.ls-rotate p { font-size: 18px; font-weight: 700; line-height: 1.7; }
+.ls-rotate small { font-weight: 500; opacity: 0.8; }
+.ls-rotate span { display: block; font-size: 54px; animation: ls-tilt 1.6s ease-in-out infinite; }
+@keyframes ls-tilt {
+  0%, 30% { transform: rotate(0); }
+  60%, 100% { transform: rotate(-90deg); }
+}
+@media (orientation: portrait) and (max-width: 820px) {
+  .ls-rotate { display: grid; }
+}
+
+/* ---------- 遊戲畫面 ---------- */
+.ls-game {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  width: min(100%, calc(100dvh * 16 / 9));
+  max-height: 100%;
+  overflow: hidden;
+  background: #cfe6f2;
+  container-type: size;
+}
+@media (min-height: 521px) and (min-width: 900px) {
+  .ls-game { border-radius: 16px; }
+}
+.ls-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 角色的動作：腳、尾巴（class 寫在 js/linggou-skate/sprites.js 的 SVG 裡） */
+.ls .ls-lg { transform-box: fill-box; transform-origin: 50% 6%; }
+.ls .ls-run .ls-lg.a { animation: ls-stride var(--ls-dur, 0.5s) ease-in-out infinite; }
+.ls .ls-run .ls-lg.b { animation: ls-stride var(--ls-dur, 0.5s) ease-in-out infinite; animation-delay: calc(var(--ls-dur, 0.5s) / -2); }
+.ls .ls-air .ls-lg.f { transform: rotate(-38deg); }
+.ls .ls-air .ls-lg.h { transform: rotate(42deg); }
+.ls .ls-flail .ls-lg { animation: ls-flail 0.16s linear infinite alternate; }
+.ls .ls-tail { transform-box: fill-box; transform-origin: 92% 96%; animation: ls-wag 0.36s ease-in-out infinite alternate; }
+.ls .ls-spin { transform-box: fill-box; transform-origin: center; animation: ls-spin 1s linear infinite; }
+.ls .ls-pulse { transform-box: fill-box; transform-origin: center; animation: ls-pulse 0.5s ease-in-out infinite alternate; }
+.ls .ls-mlg { transform-box: fill-box; transform-origin: 50% 5%; animation: ls-stride 0.3s ease-in-out infinite; }
+.ls .ls-mlg.b { animation-delay: -0.15s; }
+.ls .ls-fever { filter: drop-shadow(0 0 6px #ffd84d) drop-shadow(0 0 2px #ff7ab0); }
+@keyframes ls-stride { 0%, 100% { transform: rotate(18deg); } 50% { transform: rotate(-12deg); } }
+@keyframes ls-flail { from { transform: rotate(-30deg); } to { transform: rotate(30deg); } }
+@keyframes ls-wag { from { transform: rotate(-7deg); } to { transform: rotate(10deg); } }
+@keyframes ls-spin { to { transform: rotate(360deg); } }
+@keyframes ls-pulse { from { transform: scale(0.8); } to { transform: scale(1.15); } }
+
+/* ---------- 遊戲中介面：四個角落，不擋場地 ---------- */
+.ls-hud { position: absolute; inset: 0; pointer-events: none; font-size: max(11px, 3.4cqh); }
+.ls-hud[hidden] { display: none; }
+.ls-hud-left { position: absolute; top: 2.4%; left: 1.6%; display: grid; gap: 1.2cqh; justify-items: start; }
+.ls-hud-right { position: absolute; top: 2.4%; right: 1.6%; display: flex; gap: 1cqw; align-items: center; }
+.ls-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.6cqh 1.6cqw;
+  border-radius: 999px;
+  background: rgba(255, 250, 240, 0.92);
+  font-weight: 700;
+  box-shadow: 0 1px 0 rgba(58, 36, 22, 0.15);
+}
+.ls-lives svg { width: max(14px, 5cqh); height: max(14px, 5cqh); fill: #e0445a; }
+.ls-lives svg.off { fill: #d9cfc4; }
+.ls-carry i {
+  display: inline-grid;
+  place-items: center;
+  width: max(14px, 4.6cqh);
+  height: max(14px, 4.6cqh);
+  border: 1.5px dashed #c7b8a6;
+  border-radius: 50%;
+  font-style: normal;
+  font-size: max(9px, 2.8cqh);
+}
+.ls-carry i.on { border: 0; background: #ffd9b8; }
+.ls-carry i.gold { background: #ffe38a; }
+.ls-combo-wrap { width: 22cqw; display: grid; gap: 2px; justify-items: start; }
+.ls-combo { width: 100%; height: max(7px, 1.8cqh); border-radius: 99px; background: rgba(255, 250, 240, 0.65); overflow: hidden; }
+.ls-combo i { display: block; width: 0; height: 100%; background: linear-gradient(90deg, #ff9a3c, #ffd84d, #ff7ab0); transition: width 0.15s; }
+.ls-combo.fever i { background: linear-gradient(90deg, #ff7ab0, #ffd84d, #7fe0ff, #ff7ab0); background-size: 200% 100%; animation: ls-rainbow 0.6s linear infinite; }
+@keyframes ls-rainbow { to { background-position: 200% 0; } }
+.ls-combo-label { min-height: 1.2em; font-size: max(10px, 3cqh); font-weight: 900; color: #ffffff; -webkit-text-stroke: 3px var(--ls-ink); paint-order: stroke fill; }
+.ls-score {
+  position: absolute;
+  top: 2%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.4cqh 2.4cqw 0.7cqh;
+  border-radius: 14px;
+  background: rgba(255, 250, 240, 0.95);
+  text-align: center;
+  line-height: 1.05;
+  box-shadow: 0 1px 0 rgba(58, 36, 22, 0.15);
+}
+.ls-score b { display: block; font-family: var(--font-en-serif, Georgia, serif); font-size: max(22px, 8.4cqh); font-weight: 600; color: #c65a17; font-variant-numeric: tabular-nums; }
+.ls-score small { font-size: max(9px, 2.8cqh); color: #8a7663; }
+.ls-pause {
+  width: max(30px, 10cqh);
+  height: max(30px, 10cqh);
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 250, 240, 0.92);
+  font-weight: 900;
+  box-shadow: 0 1px 0 rgba(58, 36, 22, 0.15);
+  pointer-events: auto;
+}
+.ls-toast {
+  position: absolute;
+  top: 19%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.8cqh 2.4cqw;
+  border-radius: 999px;
+  background: rgba(58, 36, 22, 0.88);
+  color: #ffffff;
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.ls-toast.show { opacity: 1; }
+.ls-banner {
+  position: absolute;
+  top: 36%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-serif, 'Noto Serif TC', serif);
+  font-weight: 700;
+  font-size: max(26px, 12cqh);
+  color: #ffffff;
+  -webkit-text-stroke: 5px var(--ls-ink);
+  paint-order: stroke fill;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.25s, transform 0.25s;
+}
+.ls-banner small { display: block; font-family: var(--ls-sans); font-size: 0.45em; font-weight: 900; -webkit-text-stroke-width: 4px; }
+.ls-banner.show { opacity: 1; transform: scale(1); }
+.ls-speed { position: absolute; left: 50%; bottom: 2.2%; width: 18%; transform: translateX(-50%); display: grid; gap: 2px; justify-items: center; }
+.ls-gauge { position: relative; width: 100%; height: max(7px, 1.8cqh); border-radius: 99px; background: linear-gradient(90deg, #7fc28c 0 56%, #f4c34a 56% 79%, #e2524a 79% 100%); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85); }
+.ls-gauge::after { content: ''; position: absolute; top: -4px; bottom: -4px; width: 4px; left: calc(var(--v, 0) * 100% - 2px); border-radius: 2px; background: var(--ls-ink); }
+.ls-speed span { font-size: max(9px, 2.8cqh); font-weight: 700; color: #3d5566; }
+
+/* 按鍵：左下左右、右下跳 */
+.ls-pad button {
+  position: absolute;
+  bottom: 4%;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 3px 0 rgba(58, 36, 22, 0.35), inset 0 -3px 0 rgba(58, 36, 22, 0.12);
+  font-weight: 900;
+  color: var(--ls-ink);
+  touch-action: none;
+  pointer-events: auto;
+}
+.ls-key-l, .ls-key-r { width: 18cqh; height: 18cqh; font-size: 7cqh; }
+.ls-key-l { left: 2%; }
+.ls-key-r { left: calc(4% + 18cqh); }
+.ls-key-j { right: 2.4%; width: 22cqh; height: 22cqh; font-size: 7cqh; background: rgba(255, 223, 160, 0.9); }
+.ls-pad button.down { transform: translateY(3px); background: #ffffff; box-shadow: none; }
+/* 教學：手指點著要按的鍵 */
+.ls-pad button.ls-coach { box-shadow: 0 0 0 5px rgba(255, 216, 77, 0.95), 0 3px 0 rgba(58, 36, 22, 0.35); }
+.ls-pad button.ls-coach::after {
+  content: '👆';
+  position: absolute;
+  top: 70%;
+  left: 50%;
+  font-size: 9cqh;
+  animation: ls-tap 0.9s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes ls-tap {
+  0%, 100% { transform: translate(-30%, 0); }
+  50% { transform: translate(-30%, -30%); }
+}
+
+/* 教學的提示卡：放在右上角的天空，不擋到中間最上面的箱子 */
+.ls-tip {
+  position: absolute;
+  top: 16%;
+  right: 2%;
+  width: 38%;
+  padding: 1.6cqh 2.4cqw;
+  border-radius: 16px;
+  background: rgba(255, 250, 240, 0.96);
+  box-shadow: 0 6px 18px rgba(58, 36, 22, 0.2);
+  text-align: center;
+  pointer-events: auto;
+}
+.ls-tip[hidden] { display: none; }
+.ls-tip-step { font-size: max(11px, 3.2cqh); font-weight: 700; color: var(--ls-carrot); }
+.ls-tip-text { margin: 0.6cqh 0 1cqh !important; font-size: max(14px, 4.6cqh); font-weight: 700; line-height: 1.45; }
+.ls-tip-actions { display: flex; justify-content: center; align-items: center; gap: 2cqw; }
+.ls-tip-skip { border: 0; background: none; font-size: max(12px, 3.4cqh) !important; color: #8c7a66 !important; text-decoration: underline; }
+
+/* ---------- 面板（標題、暫停、結算）：橫向兩欄 ---------- */
+.ls-panel {
+  position: absolute;
+  inset: 0;
+  padding: 4cqh 4cqw;
+  overflow-y: auto;
+  background: rgba(255, 250, 240, 0.93);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  font-size: max(12px, 3.6cqh);
+}
+.ls-panel[hidden] { display: none; }
+.ls-cols { min-height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 3cqw; align-items: center; }
+.ls-col { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 1.4cqh; text-align: center; }
+.ls-col > * { flex-shrink: 0; }
+.ls-side { align-items: stretch; }
+.ls-center { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2cqh; text-align: center; }
+.ls-eyebrow { font-family: var(--font-en-serif, Georgia, serif); font-style: italic; font-weight: 600; letter-spacing: 0.14em; color: var(--ls-carrot); }
+.ls-title { font-family: var(--font-serif, 'Noto Serif TC', serif); font-weight: 700; font-size: max(22px, 9.6cqh); line-height: 1.2; text-wrap: balance; }
+.ls-title em { font-style: normal; color: var(--ls-carrot); }
+.ls-muted { color: #7d6650; }
+.ls-hero { height: 32cqh; aspect-ratio: 200 / 230; }
+.ls-btn {
+  padding: 1cqh 2.6cqw;
+  border: 2px solid var(--ls-ink);
+  border-radius: 999px;
+  background: #ffffff;
+  font-weight: 900;
+  font-size: max(13px, 4.4cqh) !important;
+  white-space: nowrap;
+  box-shadow: 0 3px 0 var(--ls-ink);
+}
+.ls-btn.primary { background: var(--ls-carrot); color: #ffffff !important; }
+.ls-btn:active { transform: translateY(3px); box-shadow: none; }
+.ls-btn[hidden] { display: none; }
+.ls-btn-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.6cqw; }
+.ls-card { display: grid; gap: 1cqh; padding: 1.8cqh 2.2cqw; border: 2px solid rgba(58, 36, 22, 0.15); border-radius: 14px; background: #ffffff; text-align: left; }
+.ls-card h3 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 1.05em; }
+.ls-card h3 small { font-size: 0.82em; font-weight: 500; color: #7d6650; text-align: right; }
+.ls-lvbar { height: 8px; border-radius: 99px; background: #efe4d6; overflow: hidden; }
+.ls-lvbar i { display: block; height: 100%; background: linear-gradient(90deg, #ff9a3c, #ffd84d); }
+.ls-missions { list-style: none; display: grid; gap: 0.8cqh; padding: 0; }
+.ls-missions li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
+.ls-missions li b { font-size: 0.9em; font-weight: 700; color: #7d6650; font-variant-numeric: tabular-nums; }
+.ls-missions li.done span, .ls-missions li.done b { color: #2f7d50; font-weight: 700; }
+.ls-closet { display: flex; flex-wrap: wrap; gap: 6px; }
+.ls-closet button { padding: 2px 8px; border: 2px solid rgba(58, 36, 22, 0.2); border-radius: 12px; background: #ffffff; font-size: 0.9em !important; }
+.ls-closet button[aria-pressed='true'] { border-color: var(--ls-carrot); background: #fff1e6; font-weight: 700; }
+.ls-closet button:disabled { opacity: 0.45; cursor: default; }
+.ls-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
+.ls-stats b { font-variant-numeric: tabular-nums; }
+.ls-big { font-family: var(--font-en-serif, Georgia, serif); font-size: max(40px, 20cqh); font-weight: 600; line-height: 1; color: #c65a17; }
+.ls-rank { font-family: var(--font-serif, 'Noto Serif TC', serif); font-weight: 700; font-size: max(18px, 7cqh); }
+.ls-unlock { padding: 1cqh 2cqw; border: 2px dashed var(--ls-carrot); border-radius: 12px; background: #fff1e6; font-weight: 700; }
+.ls-unlock[hidden] { display: none; }
+.ls-icon-btn {
+  position: absolute;
+  top: 3%;
+  z-index: 2;
+  width: 38px;
+  height: 38px;
+  border: 2px solid rgba(58, 36, 22, 0.2);
+  border-radius: 50%;
+  background: #ffffff;
+  font-size: 16px !important;
+}
+.ls-mute { right: calc(2% + 46px); }
+.ls-close { right: 2%; font-weight: 900; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ls .ls-lg, .ls .ls-tail, .ls .ls-spin, .ls .ls-pulse, .ls .ls-mlg,
+  .ls-combo.fever i, .ls-rotate span, .ls-pad button.ls-coach::after { animation: none !important; }
+}

@@ -9,6 +9,7 @@ import { haptic, HAPTIC } from '../fx/haptics.js';
 import { initBubble } from '../bubble.js';
 import { collectSound } from './effects.js';
 import { openMajiWalk, isMajiPhoto } from '../maji-walk/launch.js';
+import { openLinggouSkate, isLinggouPhoto } from '../linggou-skate/launch.js';
 import { markItem } from '../achievements/progress.js';
 
 const STORE_KEY = 'collection';
@@ -75,7 +76,10 @@ export function initCollection({ photos, lightbox, onPlay }) {
       protect: !p.downloadable,
       watermark: false,
       download: p.downloadable ? p.file : '',
-      action: isMajiPhoto(p) ? { label: '帶麻吉去公園 🐾', run: openMajiWalk } : null,
+      actions: [
+        isMajiPhoto(p) && { label: '帶麻吉去公園 🐾', run: openMajiWalk },
+        isLinggouPhoto(p) && { label: '跟令狗一起收集紅蘿蔔 🥕', run: openLinggouSkate, tone: 'carrot' },
+      ].filter(Boolean),
     })), list.indexOf(photo));
   };
 

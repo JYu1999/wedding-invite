@@ -37,6 +37,7 @@ css/
   album.css             扭蛋圖鑑、照片飛進泡泡
   achievements.css      成就清單、獎章、完成成就的通知
   maji-walk.css         「帶麻吉去公園」小遊戲的畫面（分數、提示、教學卡、結算）
+  linggou-skate.css     「跟令狗一起收集紅蘿蔔」小遊戲的畫面（橫向畫面、按鍵、教學卡、標題與結算）
 js/
   main.js               進入點，初始化各模組
   config.js             可調整內容：倒數時間、照片清單、浮水印文字、扭蛋照片清單
@@ -76,6 +77,13 @@ js/
     input.js            手指拖曳搖桿、方向鍵
     kit.js              建模共用工具（材質、影子、合併網格）
     three.js            從 CDN 載入 three.js
+  linggou-skate/        「跟令狗一起收集紅蘿蔔」小遊戲：扭到或在圖鑑看令狗的照片時，按「跟令狗一起收集紅蘿蔔」開始
+    launch.js           入口：按下去才載入遊戲、暫停首頁音樂、手機上試著全螢幕橫向；判斷是不是令狗的照片
+    game.js             遊戲本體：冰上滑行與跳躍、接紅蘿蔔與放進箱子、炸彈／小豬／麻吉、波次、FEVER、教學、結算
+    stage.js            側面看的碗形溜冰場、跳台（後面的關卡會移動）、背景
+    sprites.js          2D 角色與道具圖（SVG）：令狗、小豬、麻吉、紅蘿蔔箱、紅蘿蔔、炸彈、愛心、跳台、造型
+    progress.js         讓人一直想玩的長期目標：最佳紀錄、任務、令狗等級、升級解鎖的造型
+    audio.js            小遊戲自己的圓舞曲與音效（跟首頁背景音樂分開）
   snow/
     snow.js             照片上的雪景動畫與融雪互動
     sprites.js          雪花造型
@@ -89,7 +97,9 @@ js/
 - **新增或更換扭蛋照片**：開放下載的照片放進 `assets/images/lottery/downloadable/`、只能欣賞的放進 `assets/images/lottery/non-downloadable/`，再到 `js/config.js` 的 `LOTTERY_DOWNLOADABLE`／`LOTTERY_VIEW_ONLY` 加上檔名。抽中時會顯示「恭喜你/妳獲得 {檔名} 一張！」，所以檔名就是照片的標題。扭蛋圖鑑會自動多一格、總數跟著變，訪客已經收集的照片不受影響。
   - 扭蛋圖鑑用檔名記住訪客收集過哪些照片，**已經上線的照片不要改檔名**，否則會被當成新的一張。
 - **麻吉的照片**：檔名有「麻吉」的扭蛋照片，扭到時與在圖鑑裡看大圖時會多一顆「帶麻吉去公園」按鈕，開啟小遊戲。新增麻吉的照片時，檔名記得包含「麻吉」。
+- **令狗的照片**：檔名有「令狗」的扭蛋照片，扭到時與在圖鑑裡看大圖時會多一顆「跟令狗一起收集紅蘿蔔」按鈕。檔名同時有「麻吉」和「令狗」時，兩顆按鈕都會出現。
 - **調整小遊戲**：`js/maji-walk/game.js` 開頭的常數，例如公園距離 `GOAL`、命數 `LIVES`、牽繩長度 `LEASH`、無敵時間 `STAR_TIME`、吃到星星的加速倍率 `BOOST`；麻吉各種脾氣在 `MOODS`。
+  - 「跟令狗一起收集紅蘿蔔」：`js/linggou-skate/game.js` 開頭的 `T`，例如命數 `lives`、冰上加速 `accel`、滑倒的紅區 `red`、紅蘿蔔掉在冰上留幾秒 `groundTime`、FEVER 要連續接幾根 `feverNeed`；跳台的關卡配置在 `stage.js` 的 `LAYOUTS`；任務清單在 `progress.js` 的 `MISSIONS`。
 - **調整扭到新照片的機率**：`js/config.js` 的 `LOTTERY_NEW_WEIGHT`，還沒收集到的照片被抽中的機會是收集過的幾倍；設成 `1` 就是完全隨機。
 - **新增或調整成就**：`js/achievements/list.js`，每個成就有名稱 `name`、內容 `desc`、分數 `points`、獎章圖案 `icon` 與材質 `tier`（`bronze`／`silver`／`gold`／`rainbow`），以及看哪一項紀錄 `stat`、達到多少 `goal`。需要新的紀錄時，在對應的功能裡用 `js/achievements/progress.js` 的 `increment`（次數加一）、`recordMax`（最高紀錄）、`markItem`（收集不重複的項目）記下來。
   - **網站上線後，已經有的成就一律不能改、不能刪，只能新增**：訪客只記得完成了哪些成就，積分是用清單即時加總的，改分數、改條件或刪掉都會讓已經完成的人分數對不起來（詳細原因寫在 `list.js` 開頭）。兌換獎品的說明是同一個檔案的 `REDEEM_NOTE`。
