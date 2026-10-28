@@ -31,10 +31,17 @@
   font: inherit;
   color: inherit;
   cursor: pointer;
+  touch-action: manipulation;   /* 連點兩下不會放大畫面 */
   -webkit-tap-highlight-color: transparent;
+}
+.ls * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 .ls :focus-visible { outline: 3px solid var(--ls-gold); outline-offset: 2px; }
 .ls p, .ls h2, .ls h3, .ls ul { margin: 0; }
+.ls [hidden] { display: none !important; }
 
 /* ---------- 載入中 ---------- */
 .ls-loading {
@@ -85,6 +92,33 @@
 @media (orientation: portrait) and (max-width: 820px) {
   .ls-rotate { display: grid; }
 }
+
+/* ---------- iPhone Safari：請玩家往上滑，把網址列收起來 ---------- */
+/* 提示出現時讓手勢能捲到後面的網頁（Safari 捲動時才會收起網址列） */
+.ls.ls-swiping { overflow: visible; touch-action: pan-y; }
+.ls-swipe {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 18px;
+  padding: 24px;
+  background: rgba(29, 43, 58, 0.82);
+  color: #ffffff;
+  text-align: center;
+  touch-action: pan-y;
+}
+.ls-swipe p { font-size: 20px; font-weight: 700; line-height: 1.7; }
+.ls-swipe small { font-weight: 500; opacity: 0.85; }
+.ls-swipe span { display: block; font-size: 48px; animation: ls-swipe-up 1.2s ease-in-out infinite; }
+@keyframes ls-swipe-up {
+  0% { transform: translateY(24px); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateY(-24px); opacity: 0; }
+}
+.ls-swipe-skip { border: 0; background: none; color: #ffffff; font-size: 15px !important; text-decoration: underline; opacity: 0.8; }
 
 /* ---------- 遊戲畫面 ---------- */
 .ls-game {
@@ -175,7 +209,7 @@
 }
 .ls-score b { display: block; font-family: var(--font-en-serif, Georgia, serif); font-size: max(22px, 8.4cqh); font-weight: 600; color: #c65a17; font-variant-numeric: tabular-nums; }
 .ls-score small { font-size: max(9px, 2.8cqh); color: #8a7663; }
-.ls-pause {
+.ls-pause, .ls-fs-hud {
   width: max(30px, 10cqh);
   height: max(30px, 10cqh);
   border: 0;
@@ -345,9 +379,10 @@
   font-size: 16px !important;
 }
 .ls-mute { right: calc(2% + 46px); }
+.ls-fs-title { right: calc(2% + 92px); font-weight: 900; }
 .ls-close { right: 2%; font-weight: 900; }
 
 @media (prefers-reduced-motion: reduce) {
   .ls .ls-lg, .ls .ls-tail, .ls .ls-spin, .ls .ls-pulse, .ls .ls-mlg,
-  .ls-combo.fever i, .ls-rotate span, .ls-pad button.ls-coach::after { animation: none !important; }
+  .ls-combo.fever i, .ls-rotate span, .ls-swipe span, .ls-pad button.ls-coach::after { animation: none !important; }
 }
