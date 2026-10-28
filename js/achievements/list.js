@@ -71,9 +71,9 @@ export const ACHIEVEMENTS = [
   { id: 'music-full', name: '知音', desc: '從頭到尾連續聽完一首背景音樂〈超越時空的思念〉', points: 20, icon: '🎵', tier: 'silver', stat: 'songPlays', goal: 1 },
 
   // ---------- 跟令狗一起收集紅蘿蔔 ----------
-  { id: 'skate-10', name: '溜冰新手', desc: '「跟令狗一起收集紅蘿蔔」單局收集 10 根', points: 20, icon: '⛸️', tier: 'bronze', stat: 'skateCarrots', goal: 10 },
-  { id: 'skate-30', name: '紅蘿蔔小販', desc: '「跟令狗一起收集紅蘿蔔」單局收集 30 根', points: 40, icon: '🥕', tier: 'silver', stat: 'skateCarrots', goal: 30 },
-  { id: 'skate-60', name: '賣光紅蘿蔔', desc: '「跟令狗一起收集紅蘿蔔」單局收集 60 根', points: 100, icon: '🧺', tier: 'rainbow', stat: 'skateCarrots', goal: 60 },
+  { id: 'skate-20', name: '溜冰新手', desc: '「跟令狗一起收集紅蘿蔔」單局收集 20 根', points: 20, icon: '⛸️', tier: 'bronze', stat: 'skateCarrots', goal: 20 },
+  { id: 'skate-50', name: '紅蘿蔔小販', desc: '「跟令狗一起收集紅蘿蔔」單局收集 50 根', points: 30, icon: '🥕', tier: 'silver', stat: 'skateCarrots', goal: 50 },
+  { id: 'skate-100', name: '賣光紅蘿蔔', desc: '「跟令狗一起收集紅蘿蔔」單局收集 100 根', points: 40, icon: '🧺', tier: 'gold', stat: 'skateCarrots', goal: 100 },
   { id: 'skate-triple', name: '貪心的令狗', desc: '「跟令狗一起收集紅蘿蔔」一次放進 3 根紅蘿蔔', points: 10, icon: '🤲', tier: 'bronze', stat: 'skateTriple', goal: 1 },
   { id: 'skate-recover', name: '搶回來了！', desc: '「跟令狗一起收集紅蘿蔔」從麻吉嘴裡搶回紅蘿蔔', points: 20, icon: '🐶', tier: 'silver', stat: 'skateRecover', goal: 1 },
   { id: 'skate-slip', name: '屁股著地', desc: '「跟令狗一起收集紅蘿蔔」第一次滑倒', points: 1, icon: '🩹', tier: 'bronze', stat: 'skateSlip', goal: 1 },
