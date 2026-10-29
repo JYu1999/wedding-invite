@@ -163,6 +163,21 @@
 /* ---------- 遊戲中介面：四個角落，不擋場地 ---------- */
 .ls-hud { position: absolute; inset: 0; pointer-events: none; font-size: max(11px, 3.4cqh); }
 .ls-hud[hidden] { display: none; }
+/* 地獄模式的濃霧、瘋狂模式的全黑：蓋住溜冰場，分數和按鍵還看得到 */
+.ls-fog, .ls-dark { position: absolute; inset: 0; opacity: 0; transition: opacity 0.6s; }
+.ls-fog {
+  inset: -10%;
+  background:
+    radial-gradient(40% 50% at 25% 40%, rgba(255, 255, 255, 0.95), transparent 70%),
+    radial-gradient(45% 45% at 70% 55%, rgba(244, 247, 250, 0.95), transparent 70%),
+    radial-gradient(35% 40% at 50% 80%, rgba(255, 255, 255, 0.9), transparent 70%),
+    rgba(232, 238, 244, 0.82);
+  animation: ls-fog 5s ease-in-out infinite alternate;
+}
+.ls-fog.on { opacity: 1; transition-duration: 0.35s; }
+.ls-dark { background: #000000; transition-duration: 0.35s; }
+.ls-dark.on { opacity: 1; transition: none; }
+@keyframes ls-fog { from { transform: translateX(-3%); } to { transform: translateX(3%); } }
 .ls-hud-left { position: absolute; top: 2.4%; left: 1.6%; display: grid; gap: 1.2cqh; justify-items: start; }
 .ls-hud-right { position: absolute; top: 2.4%; right: 1.6%; display: flex; gap: 1cqw; align-items: center; }
 .ls-chip {
@@ -275,8 +290,13 @@
 .ls-key-l, .ls-key-r { width: 18cqh; height: 18cqh; font-size: 7cqh; }
 .ls-key-l { left: 2%; }
 .ls-key-r { left: calc(4% + 18cqh); }
-.ls-key-j { right: 2.4%; width: 22cqh; height: 22cqh; font-size: 7cqh; background: rgba(255, 223, 160, 0.9); }
+.ls-key-j { right: 2.4%; width: 22cqh; height: 22cqh; font-size: 7cqh; }
+/* 「跳」的鍵是橘色；地獄模式按鍵亂換時，顏色跟著功能走 */
+.ls-pad button[data-fn='jump'] { background: rgba(255, 223, 160, 0.9); }
 .ls-pad button.down { transform: translateY(3px); background: #ffffff; box-shadow: none; }
+/* 地獄模式：按鍵要亂換前抖一抖 */
+.ls-pad.ls-shuffle button { box-shadow: 0 0 0 4px rgba(226, 82, 74, 0.85), 0 3px 0 rgba(58, 36, 22, 0.35); animation: ls-shake 0.12s linear infinite alternate; }
+@keyframes ls-shake { from { translate: -2px 0; } to { translate: 2px 0; } }
 /* 教學：手指點著要按的鍵 */
 .ls-pad button.ls-coach { box-shadow: 0 0 0 5px rgba(255, 216, 77, 0.95), 0 3px 0 rgba(58, 36, 22, 0.35); }
 .ls-pad button.ls-coach::after {
@@ -384,5 +404,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ls .ls-lg, .ls .ls-tail, .ls .ls-spin, .ls .ls-pulse, .ls .ls-mlg,
-  .ls-combo.fever i, .ls-rotate span, .ls-swipe span, .ls-pad button.ls-coach::after { animation: none !important; }
+  .ls-combo.fever i, .ls-rotate span, .ls-swipe span, .ls-pad button.ls-coach::after, .ls-pad.ls-shuffle button, .ls-fog { animation: none !important; }
 }
