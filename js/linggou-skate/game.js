@@ -4,6 +4,8 @@
 // 踩著跳台跳到最上面，放進紅蘿蔔箱；一次放越多越划算（1 / 3 / 6 分），3 條命用完就結束
 // 干擾：炸彈（第 2 波起，碰到就爆，沒碰到過一陣子會熄掉）、小豬（第 3 波起，令狗會失控衝過去）、麻吉（第 4 波起，搶背著的紅蘿蔔）
 // 好東西：愛心、黃金紅蘿蔔、連續接住 12 根的 FEVER、每 5 波一次的紅蘿蔔雨；後面的關卡跳台會移動
+// 地獄模式：分數到 150 起「跳」「左」「右」每 10 秒亂換，偶爾起濃霧
+// 瘋狂模式：分數到 200 起按鍵每 5 秒亂換、炸彈比紅蘿蔔多，偶爾畫面突然全黑
 // 長期目標在 progress.js：任務、令狗等級、升級解鎖的造型
 // 流程：標題 → 教學（第一次玩，在遊戲畫面裡邊玩邊學）→ 倒數 → 開始 → 命用完 → 結算
 
@@ -30,6 +32,11 @@ const T = {
   waveTime: 30, bonusTime: 15,   // 每 5 波一次紅蘿蔔雨
   bombLife: 5, bombR: 46,         // 落地的炸彈留幾秒（最後 1 秒閃爍，沒碰到就熄掉）；爆炸時炸飛附近紅蘿蔔的範圍
   pigTime: 2.4, majiSpeed: 232, majiFlee: 280,
+  hellAt: 150, hell2At: 200,     // 地獄模式、瘋狂模式從幾分開始
+  swapGap: 10, swapGap2: 5,      // 按鍵每幾秒亂換一次（地獄／瘋狂）
+  hellCarrotGap: 2.4, hellBombGap: 0.8, // 瘋狂模式：紅蘿蔔和炸彈多少對調，紅蘿蔔約 2.4 秒一根、炸彈約 0.8 秒一顆
+  fogTime: 2.6, darkTime: 1.3,   // 濃霧（地獄起）、全黑（瘋狂）擋住畫面幾秒
+  blindGap: [12, 20],            // 隔幾秒來一次濃霧或全黑
   scale: 0.27,                   // 令狗圖的放大倍數（原圖 250 寬）
 };
 const STEP = 1 / 120;
@@ -37,6 +44,10 @@ const TUTORIAL_KEY = 'linggou-skate-tutorial';
 const RANKS = [[60, '賣光紅蘿蔔的小令狗'], [30, '賣紅蘿蔔的小令狗'], [10, '搶奪紅蘿蔔的令狗'], [0, '紅蘿蔔被偷走的令狗']];
 const HEART_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.5 2.3 4 6.4 4c2.3 0 3.9 1.3 5.6 3.3C13.7 5.3 15.3 4 17.6 4c4.1 0 6 4.5 4.4 7.7C19.5 16.4 12 21 12 21z"/></svg>';
 const SVGNS = 'http://www.w3.org/2000/svg';
+// 地獄模式的按鍵亂換：三個鍵的位置不動，功能換成另一種排法
+const KEYS = ['left', 'right', 'jump'];
+const KEY_ORDERS = [['left', 'right', 'jump'], ['left', 'jump', 'right'], ['right', 'left', 'jump'], ['right', 'jump', 'left'], ['jump', 'left', 'right'], ['jump', 'right', 'left']];
+const KEY_LABEL = { left: ['◀', '往左'], right: ['▶', '往右'], jump: ['跳', '跳'] };
 const rand = (a, b) => a + Math.random() * (b - a);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -61,6 +72,8 @@ const TEMPLATE = `
       <g class="ls-bg"></g><g class="ls-plats"></g><g class="ls-items"></g><g class="ls-actors"></g><g class="ls-fx"></g>
     </svg>
     <div class="ls-hud" hidden>
+      <div class="ls-fog" aria-hidden="true"></div>
+      <div class="ls-dark" aria-hidden="true"></div>
       <div class="ls-hud-left">
         <div class="ls-chip ls-lives" aria-label="生命"></div>
         <div class="ls-chip ls-carry">背著 <i></i><i></i><i></i></div>
@@ -76,9 +89,9 @@ const TEMPLATE = `
       <div class="ls-banner"></div>
       <div class="ls-speed"><div class="ls-gauge"></div><span>速度</span></div>
       <div class="ls-pad">
-        <button type="button" class="ls-key-l" data-key="left" aria-label="往左">◀</button>
-        <button type="button" class="ls-key-r" data-key="right" aria-label="往右">▶</button>
-        <button type="button" class="ls-key-j" data-key="jump" aria-label="跳">跳</button>
+        <button type="button" class="ls-key-l" data-key="left" data-fn="left" aria-label="往左">◀</button>
+        <button type="button" class="ls-key-r" data-key="right" data-fn="right" aria-label="往右">▶</button>
+        <button type="button" class="ls-key-j" data-key="jump" data-fn="jump" aria-label="跳">跳</button>
       </div>
       <div class="ls-tip" hidden>
         <p class="ls-tip-step"></p>
@@ -162,6 +175,7 @@ export function createGame(root, { onClose } = {}) {
     items: $('.ls-items'), actors: $('.ls-actors'), fx: $('.ls-fx'), plats: $('.ls-plats'),
   };
   const hud = $('.ls-hud');
+  const padEl = $('.ls-pad');
   const toastEl = $('.ls-toast');
   const bannerEl = $('.ls-banner');
   const tipEl = $('.ls-tip');
@@ -183,6 +197,8 @@ export function createGame(root, { onClose } = {}) {
   // mode：title | tutorial | count | play | pause | over
   const state = { mode: 'title', t: 0, pausedFrom: null, countT: 0 };
   const input = { left: false, right: false, jump: false, jumpPressed: false };
+  // 每個鍵（螢幕按鍵的位置、鍵盤的鍵）現在是什麼功能；平常就是自己，地獄模式會亂換
+  const keyFn = { left: 'left', right: 'right', jump: 'jump' };
   let dog, items, run, fx = [];
   let dogEl = null, dogKey = '', hudKey = '';
   const tut = { step: 0, moved: 0, deposited: false, wait: 0, spawnT: 0 };
@@ -207,7 +223,11 @@ export function createGame(root, { onClose } = {}) {
       timers: { carrot: 0.6, bomb: 4, pig: rand(6, 10), maji: rand(3, 6), gold: rand(18, 26), heart: rand(25, 35) },
       stats: { score: 0, air: 0, triple: 0, wave: 1, fever: 0, gold: 0, ride: 0, pig: 0, recover: 0, hot: 0, nohit: 0, rim: 0, dodge: 0, caught: 0, stolen: 0, slips: 0, bombs: 0, walls: 0, maxDrop: 0 },
       noHitT: 0, completed: new Set(), boxFill: 0,
+      hell: 0, swapT: 0, blind: null, blindT: 0,
     };
+    setKeys(KEYS);
+    setBlind(null);
+    padEl.classList.remove('ls-shuffle');
     layer.items.replaceChildren();
     layer.actors.replaceChildren();
     layer.fx.replaceChildren();
@@ -349,6 +369,56 @@ export function createGame(root, { onClose } = {}) {
     const m = items.maji;
     if (m && m.state === 'chase') { m.state = 'sulk'; m.t = 0; popup(m.x, groundY(clamp(m.x, 0, W)) - 70, '哼！', '#b35d50', 18); }
     tut.deposited = true;
+    if (state.mode === 'play') checkHell();
+  }
+
+  // ---------- 地獄模式：分數到了就開始，按鍵定時亂換 ----------
+  function checkHell() {
+    const lv = run.score >= T.hell2At ? 2 : run.score >= T.hellAt ? 1 : 0;
+    if (lv <= run.hell) return;
+    const gap = lv === 2 ? T.swapGap2 : T.swapGap;
+    run.swapT = run.hell ? Math.min(run.swapT, gap) : gap;
+    if (!run.hell) run.blindT = rand(6, 10);
+    run.hell = lv;
+    sfx.hell();
+    haptic(60);
+    banner(lv === 2 ? '瘋狂模式<small>炸彈比紅蘿蔔多！按鍵每 5 秒亂換，畫面還會突然變黑</small>' : '地獄模式<small>「跳」「左」「右」每 10 秒亂換，還會起濃霧！</small>', 2.4);
+    renderHud();
+  }
+  // 三個鍵依序換成 fns 的功能，按鍵上的字跟著改
+  function setKeys(fns) {
+    KEYS.forEach((k, i) => { keyFn[k] = fns[i]; });
+    root.querySelectorAll('.ls-pad button').forEach((b) => {
+      const f = keyFn[b.dataset.key];
+      b.dataset.fn = f;
+      b.textContent = KEY_LABEL[f][0];
+      b.setAttribute('aria-label', KEY_LABEL[f][1]);
+    });
+  }
+  // 濃霧、全黑：一下子就散，瘋狂模式兩種都會來，全黑比較常見
+  function setBlind(kind) {
+    $('.ls-fog').classList.toggle('on', kind === 'fog');
+    $('.ls-dark').classList.toggle('on', kind === 'dark');
+  }
+  function updateBlind(dt) {
+    if (run.blind) {
+      if ((run.blind.t -= dt) <= 0) { run.blind = null; run.blindT = rand(...T.blindGap); setBlind(null); }
+      return;
+    }
+    if ((run.blindT -= dt) > 0) return;
+    const kind = run.hell === 2 && Math.random() < 0.65 ? 'dark' : 'fog';
+    run.blind = { kind, t: kind === 'dark' ? T.darkTime : T.fogTime };
+    setBlind(kind);
+  }
+  function shuffleKeys() {
+    const now = KEYS.map((k) => keyFn[k]).join();
+    const options = KEY_ORDERS.filter((o) => o.join() !== now);
+    setKeys(options[Math.floor(Math.random() * options.length)]);
+    // 按著的鍵全部放開，換完要重按才算，不會按著按著突然變成別的動作
+    releaseAll();
+    sfx.shuffle();
+    haptic(30);
+    toast('按鍵亂換了！看清楚再按', 1.4);
   }
 
   // =====================================================================
@@ -399,6 +469,10 @@ export function createGame(root, { onClose } = {}) {
       // 箱子發金光：10 秒內放進去 ×2
       if (run.hot) { run.hotT -= dt; if (run.hotT <= 0) { run.hot = false; renderBox(); } }
       else if ((run.nextHot -= dt) <= 0) { run.hot = true; run.hotT = 10; run.nextHot = rand(18, 26); renderBox(); toast('箱子發金光了！現在放進去 ×2', 1.8); }
+      // 地獄模式：時間到就亂換按鍵，最後 1 秒按鍵先抖一抖提醒
+      if (run.hell && (run.swapT -= dt) <= 0) { shuffleKeys(); run.swapT = run.hell === 2 ? T.swapGap2 : T.swapGap; }
+      padEl.classList.toggle('ls-shuffle', run.hell > 0 && run.swapT < 1);
+      if (run.hell) updateBlind(dt);
       spawnAll(dt);
     } else {
       updateTutorial(dt);
@@ -436,12 +510,15 @@ export function createGame(root, { onClose } = {}) {
     const tm = run.timers;
     const feverMul = run.fever > 0 ? 2 : 1;
     // 紅蘿蔔：第 1 波約 2.2 秒一根，越後面越快，最快 0.85 秒；場上同時最多 3（第 1 波）／6 根
-    const carrotGap = run.bonus ? 0.4 : Math.max(0.85, 2.2 - 0.1 * (w - 1));
-    if ((tm.carrot -= dt * feverMul) <= 0 && items.carrots.length < (w === 1 ? 3 : 6) * feverMul) { spawnCarrot(); tm.carrot = carrotGap * rand(0.75, 1.25); }
+    // 瘋狂模式：紅蘿蔔和炸彈多少對調，紅蘿蔔變少、炸彈一直掉（紅蘿蔔雨照樣有）
+    const hell2 = run.hell >= 2;
+    const carrotGap = run.bonus ? 0.4 : hell2 ? T.hellCarrotGap : Math.max(0.85, 2.2 - 0.1 * (w - 1));
+    const carrotCap = (w === 1 || (hell2 && !run.bonus) ? 3 : 6) * feverMul;
+    if ((tm.carrot -= dt * feverMul) <= 0 && items.carrots.length < carrotCap) { spawnCarrot(); tm.carrot = carrotGap * rand(0.75, 1.25); }
     if (w >= 2 && !run.bonus && (tm.bomb -= dt) <= 0) {
       const x = rand(40, W - 40);
       items.warns.push({ x, t: 0.9, el: warnEl(x) });
-      tm.bomb = Math.max(1.2, 4.4 - 0.45 * (w - 2)) * rand(0.8, 1.2);
+      tm.bomb = (hell2 ? T.hellBombGap : Math.max(1.2, 4.4 - 0.45 * (w - 2))) * rand(0.8, 1.2);
     }
     if (w >= 3 && (tm.gold -= dt) <= 0) { spawnCarrot(true); tm.gold = rand(20, 28); }
     if (run.lives < T.lives && (tm.heart -= dt) <= 0) { spawnHeart(); tm.heart = rand(28, 38); }
@@ -881,7 +958,7 @@ export function createGame(root, { onClose } = {}) {
 
   // 分數、命、背著幾根、第幾波：有變才更新
   function renderHud() {
-    const key = [run.lives, run.score, dog.carry.join(','), run.wave, run.bonus, state.mode].join('|');
+    const key = [run.lives, run.score, dog.carry.join(','), run.wave, run.bonus, run.hell, state.mode].join('|');
     if (key === hudKey) return;
     hudKey = key;
     $('.ls-lives').innerHTML = Array.from({ length: T.lives }, (_, i) => HEART_SVG.replace('<svg', i < run.lives ? '<svg' : '<svg class="off"')).join('');
@@ -891,7 +968,7 @@ export function createGame(root, { onClose } = {}) {
       s.className = i < dog.carry.length ? (dog.carry[i] > 1 ? 'on gold' : 'on') : '';
       s.textContent = i < dog.carry.length ? '🥕' : '';
     });
-    $('.ls-wave').textContent = state.mode === 'tutorial' ? '教學' : `第 ${run.wave} 波${run.bonus ? '・紅蘿蔔雨' : ''}`;
+    $('.ls-wave').textContent = state.mode === 'tutorial' ? '教學' : `第 ${run.wave} 波${run.bonus ? '・紅蘿蔔雨' : ''}${['', '・地獄', '・瘋狂'][run.hell]}`;
   }
 
   // =====================================================================
@@ -1072,8 +1149,9 @@ export function createGame(root, { onClose } = {}) {
   const held = new Map();
   const keys = new Set();
   const padButtons = [...root.querySelectorAll('.ls-pad button')];
+  // held、keys 記的是哪顆鍵；換成功能要看 keyFn（地獄模式會亂換）
   const syncKeys = () => {
-    const on = new Set([...held.values(), ...keys]);
+    const on = new Set([...held.values(), ...keys].map((k) => keyFn[k]));
     if (on.has('jump') && !input.jump) input.jumpPressed = true;
     for (const k of ['left', 'right', 'jump']) input[k] = on.has(k);
     padButtons.forEach((b) => b.classList.toggle('down', held.size > 0 && [...held.values()].includes(b.dataset.key)));

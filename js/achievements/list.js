@@ -77,4 +77,6 @@ export const ACHIEVEMENTS = [
   { id: 'skate-triple', name: '貪心的令狗', desc: '「跟令狗一起收集紅蘿蔔」一次放進 3 根紅蘿蔔', points: 10, icon: '🤲', tier: 'bronze', stat: 'skateTriple', goal: 1 },
   { id: 'skate-recover', name: '搶回來了！', desc: '「跟令狗一起收集紅蘿蔔」從麻吉嘴裡搶回紅蘿蔔', points: 20, icon: '🐶', tier: 'silver', stat: 'skateRecover', goal: 1 },
   { id: 'skate-slip', name: '屁股著地', desc: '「跟令狗一起收集紅蘿蔔」第一次滑倒', points: 1, icon: '🩹', tier: 'bronze', stat: 'skateSlip', goal: 1 },
+  { id: 'skate-200', name: '地獄歸來', desc: '「跟令狗一起收集紅蘿蔔」單局收集 200 根', points: 100, icon: '🔥', tier: 'rainbow', stat: 'skateCarrots', goal: 200 },
+  { id: 'skate-250', name: '紅蘿蔔之王', desc: '「跟令狗一起收集紅蘿蔔」單局收集 250 根', points: 200, icon: '👑', tier: 'rainbow', stat: 'skateCarrots', goal: 250 },
 ];

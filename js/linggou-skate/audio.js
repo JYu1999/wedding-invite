@@ -75,6 +75,8 @@ export const sfx = {
   count: (last) => tone(last ? 1047 : 523, last ? 0.3 : 0.12, { type: 'triangle', vol: 0.14 }),
   step: () => notes([659, 988], { dur: 0.1, type: 'triangle', vol: 0.12 }, 0.07),
   over: () => notes([523, 440, 349, 262], { dur: 0.25, type: 'triangle', vol: 0.13 }, 0.2),
+  shuffle: () => notes([784, 523, 988, 659], { dur: 0.07, type: 'square', vol: 0.06 }, 0.05),
+  hell: () => notes([262, 247, 233, 196], { dur: 0.24, type: 'sawtooth', vol: 0.09 }, 0.16),
   mission: () => notes([784, 988, 1175, 1568], { dur: 0.12, type: 'triangle', vol: 0.12 }, 0.08),
 };
 
