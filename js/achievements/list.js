@@ -61,6 +61,7 @@ export const ACHIEVEMENTS = [
   { id: 'walk-park', name: '抵達公園', desc: '「帶麻吉去公園」平安走到 1000 公尺外的公園', points: 100, icon: '🏞️', tier: 'rainbow', stat: 'walkMeters', goal: 1000 },
   { id: 'walk-short', name: '出師未捷', desc: `「帶麻吉去公園」走不到 ${WALK_SHORT_METERS} 公尺就結束`, points: 1, icon: '🩹', tier: 'bronze', stat: 'walkShort', goal: 1 },
   { id: 'walk-tiny', name: '寸步難行', desc: `「帶麻吉去公園」走不到 ${WALK_TINY_METERS} 公尺就結束`, points: 0.87, icon: '🐌', tier: 'bronze', stat: 'walkTiny', goal: 1 },
+  { id: 'walk-plays-30', name: '每天都要散步', desc: '「帶麻吉去公園」玩 30 次', points: 30, icon: '📅', tier: 'silver', stat: 'walkPlays', goal: 30 },
 
   // ---------- 首頁 ----------
   { id: 'gallery-all', name: '婚紗鑑賞家', desc: '放大看過每一張婚紗照', points: 20, icon: '💍', tier: 'silver', stat: 'gallery', goal: GALLERY_ALL.length, count: within(GALLERY_ALL) },
@@ -79,4 +80,5 @@ export const ACHIEVEMENTS = [
   { id: 'skate-slip', name: '屁股著地', desc: '「跟令狗一起收集紅蘿蔔」第一次滑倒', points: 1, icon: '🩹', tier: 'bronze', stat: 'skateSlip', goal: 1 },
   { id: 'skate-200', name: '地獄歸來', desc: '「跟令狗一起收集紅蘿蔔」單局收集 200 根', points: 100, icon: '🔥', tier: 'rainbow', stat: 'skateCarrots', goal: 200 },
   { id: 'skate-250', name: '紅蘿蔔之王', desc: '「跟令狗一起收集紅蘿蔔」單局收集 250 根', points: 200, icon: '👑', tier: 'rainbow', stat: 'skateCarrots', goal: 250 },
+  { id: 'skate-plays-30', name: '溜冰場常客', desc: '「跟令狗一起收集紅蘿蔔」玩 30 次', points: 30, icon: '🎫', tier: 'silver', stat: 'skatePlays', goal: 30 },
 ];

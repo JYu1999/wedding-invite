@@ -273,9 +273,10 @@
 .ls-speed span { font-size: max(9px, 2.8cqh); font-weight: 700; color: #3d5566; }
 
 /* 按鍵：左下左右、右下跳 */
+/* 離螢幕邊緣、底部都留一段距離：大拇指貼著邊緣按，很容易順手滑出「上一頁」或 iPhone 回主畫面的手勢，整個跳出瀏覽器 */
 .ls-pad button {
   position: absolute;
-  bottom: 4%;
+  bottom: max(10%, calc(env(safe-area-inset-bottom, 0px) + 14px));
   display: grid;
   place-items: center;
   border: 0;
@@ -287,10 +288,11 @@
   touch-action: none;
   pointer-events: auto;
 }
-.ls-key-l, .ls-key-r { width: 18cqh; height: 18cqh; font-size: 7cqh; }
-.ls-key-l { left: 2%; }
-.ls-key-r { left: calc(4% + 18cqh); }
-.ls-key-j { right: 2.4%; width: 22cqh; height: 22cqh; font-size: 7cqh; }
+/* ◀ ▶ 要一直按住、最常按，做大一點；「跳」再大一點，一眼就分得出主要動作。兩顆中間留小縫，手指滑過去就換方向 */
+.ls-key-l, .ls-key-r { width: 22cqh; height: 22cqh; font-size: 8cqh; }
+.ls-key-l { left: 7%; }
+.ls-key-r { left: calc(8.5% + 22cqh); }
+.ls-key-j { right: 7%; width: 25cqh; height: 25cqh; font-size: 8cqh; }
 /* 「跳」的鍵是橘色；地獄模式按鍵亂換時，顏色跟著功能走 */
 .ls-pad button[data-fn='jump'] { background: rgba(255, 223, 160, 0.9); }
 .ls-pad button.down { transform: translateY(3px); background: #ffffff; box-shadow: none; }
@@ -387,6 +389,7 @@
 .ls-rank { font-family: var(--font-serif, 'Noto Serif TC', serif); font-weight: 700; font-size: max(18px, 7cqh); }
 .ls-unlock { padding: 1cqh 2cqw; border: 2px dashed var(--ls-carrot); border-radius: 12px; background: #fff1e6; font-weight: 700; }
 .ls-unlock[hidden] { display: none; }
+.ls-resume-note { padding: 0.6cqh 2cqw; border-radius: 12px; background: #fff1e6; color: #c65a17; font-weight: 700; }
 .ls-icon-btn {
   position: absolute;
   top: 3%;
