@@ -828,6 +828,7 @@ export function createGame(root, { onClose } = {}) {
     const record = m > best.meters || (won && (best.seconds == null || elapsed < best.seconds));
     if (record) save(BEST_KEY, { meters: Math.max(m, best.meters), seconds: won ? Math.min(elapsed, best.seconds ?? Infinity) : best.seconds });
     recordMax('walkMeters', m);
+    increment('walkPlays');
     if (!won && m < WALK_SHORT_METERS) increment('walkShort');
     if (!won && m < WALK_TINY_METERS) increment('walkTiny');
     return { m, best: load(BEST_KEY, best), record };

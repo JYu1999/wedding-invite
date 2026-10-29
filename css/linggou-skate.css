@@ -273,9 +273,11 @@
 .ls-speed span { font-size: max(9px, 2.8cqh); font-weight: 700; color: #3d5566; }
 
 /* 按鍵：左下左右、右下跳 */
+/* 看得到的按鍵放在碗底下面那條冰上，不擋令狗滑的地方；按得到的範圍（::before，看不見）再往上、往外延伸，比按鍵大一圈 */
+/* 離左右邊緣也留一段：大拇指貼著邊緣按，很容易順手滑出「上一頁」 */
 .ls-pad button {
   position: absolute;
-  bottom: 4%;
+  bottom: 3.5%;
   display: grid;
   place-items: center;
   border: 0;
@@ -287,10 +289,15 @@
   touch-action: none;
   pointer-events: auto;
 }
-.ls-key-l, .ls-key-r { width: 18cqh; height: 18cqh; font-size: 7cqh; }
-.ls-key-l { left: 2%; }
-.ls-key-r { left: calc(4% + 18cqh); }
-.ls-key-j { right: 2.4%; width: 22cqh; height: 22cqh; font-size: 7cqh; }
+.ls-key-l, .ls-key-r { width: 19cqh; height: 19cqh; font-size: 7cqh; }
+.ls-key-l { left: 6%; }
+.ls-key-r { left: calc(7.5% + 19cqh); }
+.ls-key-j { right: 6%; width: 22cqh; height: 22cqh; font-size: 7cqh; }
+/* 按得到的範圍：往上多 7cqh、往外多 4cqh；◀ ▶ 中間的縫也算，手指滑過去不會斷掉 */
+.ls-pad button::before { content: ''; position: absolute; }
+.ls-key-l::before { inset: -7cqh -0.75cqw -3.5cqh -4cqh; }
+.ls-key-r::before { inset: -7cqh -4cqh -3.5cqh -0.75cqw; }
+.ls-key-j::before { inset: -7cqh -4cqh -3.5cqh; }
 /* 「跳」的鍵是橘色；地獄模式按鍵亂換時，顏色跟著功能走 */
 .ls-pad button[data-fn='jump'] { background: rgba(255, 223, 160, 0.9); }
 .ls-pad button.down { transform: translateY(3px); background: #ffffff; box-shadow: none; }
@@ -387,6 +394,7 @@
 .ls-rank { font-family: var(--font-serif, 'Noto Serif TC', serif); font-weight: 700; font-size: max(18px, 7cqh); }
 .ls-unlock { padding: 1cqh 2cqw; border: 2px dashed var(--ls-carrot); border-radius: 12px; background: #fff1e6; font-weight: 700; }
 .ls-unlock[hidden] { display: none; }
+.ls-resume-note { padding: 0.6cqh 2cqw; border-radius: 12px; background: #fff1e6; color: #c65a17; font-weight: 700; }
 .ls-icon-btn {
   position: absolute;
   top: 3%;

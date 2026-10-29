@@ -8,13 +8,14 @@
 // 瘋狂模式：分數到 200 起按鍵每 5 秒亂換、炸彈比紅蘿蔔多，偶爾畫面突然全黑
 // 長期目標在 progress.js：任務、令狗等級、升級解鎖的造型
 // 流程：標題 → 教學（第一次玩，在遊戲畫面裡邊玩邊學）→ 倒數 → 開始 → 命用完 → 結算
+// 防誤觸：滑到「上一頁」、離開全螢幕、切到別的 App 都只會暫停；就算整個瀏覽器被關掉，下次打開也能接著玩上一局
 
 import { carrotSVG, dogSide, dogFront, pigSVG, majiSVG, boxSVG, bombSVG, heartSVG, COSTUMES } from './sprites.js';
 import { W, FLOOR, RIM, groundY, groundSlope, LAYOUTS, layoutForWave, createPlatforms, surfaceAt, buildBackground } from './stage.js';
 import { wakeAudio, setMuted, sfx, music } from './audio.js';
 import { progress, missionAt } from './progress.js';
 import { haptic } from '../fx/haptics.js';
-import { seen, markSeen } from '../storage.js';
+import { seen, markSeen, load, save as store } from '../storage.js';
 import { increment, recordMax } from '../achievements/progress.js';
 import { isTouch } from '../device.js';
 import { canFullscreen, isFullscreen, enterFullscreen, onFullscreenChange, iosBarsShowing } from './fullscreen.js';
@@ -41,6 +42,7 @@ const T = {
 };
 const STEP = 1 / 120;
 const TUTORIAL_KEY = 'linggou-skate-tutorial';
+const RESUME_KEY = 'linggou-skate-resume';
 const RANKS = [[60, '賣光紅蘿蔔的小令狗'], [30, '賣紅蘿蔔的小令狗'], [10, '搶奪紅蘿蔔的令狗'], [0, '紅蘿蔔被偷走的令狗']];
 const HEART_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.5 2.3 4 6.4 4c2.3 0 3.9 1.3 5.6 3.3C13.7 5.3 15.3 4 17.6 4c4.1 0 6 4.5 4.4 7.7C19.5 16.4 12 21 12 21z"/></svg>';
 const SVGNS = 'http://www.w3.org/2000/svg';
@@ -113,6 +115,7 @@ const TEMPLATE = `
           <h2 class="ls-title">跟令狗一起收集<em>紅蘿蔔</em></h2>
           <svg class="ls-hero" viewBox="0 -14 200 230" aria-hidden="true"></svg>
           <p class="ls-muted ls-title-best"></p>
+          <p class="ls-resume-note" hidden></p>
           <div class="ls-btn-row ls-title-actions"></div>
         </div>
         <div class="ls-col ls-side">
@@ -503,6 +506,7 @@ export function createGame(root, { onClose } = {}) {
     const intro = { 2: '炸彈來了！別碰到它', 3: '小豬出沒！', 4: '麻吉來搶紅蘿蔔！' }[run.wave];
     const sub = run.bonus ? '紅蘿蔔雨！盡量接！' : [intro, changed ? LAYOUTS[layout].name : ''].filter(Boolean).join('　') || '越來越快了！';
     banner(`第 ${run.wave} 波<small>${sub}</small>`, 2);
+    saveRun();
   }
 
   function spawnAll(dt) {
@@ -1005,9 +1009,55 @@ export function createGame(root, { onClose } = {}) {
     $('.ls-closet').innerHTML = COSTUMES.map((c) => `<button type="button" data-cos="${c.id}" aria-pressed="${save.costume === c.id}" ${c.lv > lv ? 'disabled' : ''}>${c.lv > lv ? `🔒 Lv${c.lv}` : c.name}</button>`).join('');
     $('.ls-mute').textContent = save.muted ? '🔇' : '🔊';
     const actions = $('.ls-title-actions');
-    actions.innerHTML = seen(TUTORIAL_KEY)
-      ? '<button type="button" class="ls-btn primary" data-go="run">開始！</button><button type="button" class="ls-btn" data-go="tutorial">再看一次教學</button>'
-      : '<button type="button" class="ls-btn primary" data-go="tutorial">開始教學</button><button type="button" class="ls-btn" data-go="run">我會玩，直接開始</button>';
+    const snap = savedRun();
+    const note = $('.ls-resume-note');
+    note.hidden = !snap;
+    if (snap) note.textContent = `上一局玩到一半：第 ${snap.wave} 波・${snap.score} 根`;
+    actions.innerHTML = snap
+      ? '<button type="button" class="ls-btn primary" data-go="continue">接著玩上一局</button><button type="button" class="ls-btn" data-go="run">重新開始</button>'
+      : seen(TUTORIAL_KEY)
+        ? '<button type="button" class="ls-btn primary" data-go="run">開始！</button><button type="button" class="ls-btn" data-go="tutorial">再看一次教學</button>'
+        : '<button type="button" class="ls-btn primary" data-go="tutorial">開始教學</button><button type="button" class="ls-btn" data-go="run">我會玩，直接開始</button>';
+  }
+
+  // ---------- 接關：玩到一半被打斷（不小心滑出瀏覽器、App 被關掉、手機沒電），下次打開還能接著玩 ----------
+  // 每次暫停、每換一波就把這一局記下來；命用完結算、或按「重新開始」才清掉
+  // 只記分數、命、第幾波這些，場上的紅蘿蔔、炸彈、跳台位置不記，接著玩時令狗從碗底重新出發
+  const inRun = () => state.mode === 'play' || state.mode === 'count' || (state.mode === 'pause' && state.pausedFrom !== 'tutorial');
+  function saveRun() {
+    // 剛開始沒幾秒就不用記了，免得標題一直問要不要接著玩 0 根的那一局
+    if (!inRun() || run.lives <= 0 || run.time < 3) return;
+    store(RESUME_KEY, {
+      score: run.score, lives: run.lives, wave: run.wave, waveT: run.waveT, bonus: run.bonus, time: run.time,
+      feverCount: run.feverCount, boxFill: run.boxFill, hell: run.hell, keys: KEYS.map((k) => keyFn[k]),
+      stats: run.stats, completed: [...run.completed], carry: dog.carry,
+    });
+  }
+  const clearRun = () => store(RESUME_KEY, null);
+  function savedRun() {
+    const s = load(RESUME_KEY, null);
+    return s && s.lives > 0 && Number.isFinite(s.score) ? s : null;
+  }
+  function continueRun() {
+    const s = savedRun();
+    if (!s) { startRun(); return; }
+    reset(false);
+    Object.assign(run, {
+      score: s.score, lives: Math.min(T.lives, s.lives), wave: s.wave, waveT: s.waveT || 0, bonus: !!s.bonus, time: s.time || 0,
+      feverCount: s.feverCount || 0, boxFill: s.boxFill || 0, hell: s.hell || 0,
+      stats: { ...run.stats, ...s.stats }, completed: new Set(s.completed || []),
+    });
+    if (run.hell) {
+      run.swapT = run.hell === 2 ? T.swapGap2 : T.swapGap;
+      run.blindT = rand(6, 10);
+      if (KEY_ORDERS.some((o) => o.join() === s.keys?.join())) setKeys(s.keys);
+    }
+    dog.carry = Array.isArray(s.carry) ? s.carry.slice(0, T.carryMax) : [];
+    plats.set(layoutForWave(run.wave, run.bonus), true);
+    plats.update(0);
+    renderBox();
+    renderPlats();
+    begin();
   }
 
   function gameOver() {
@@ -1020,6 +1070,8 @@ export function createGame(root, { onClose } = {}) {
     save.best = Math.max(save.best, run.score);
     save.total += run.score;
     save.plays++;
+    increment('skatePlays');
+    clearRun();
     const shown = save.active.slice();
     // 完成的任務換成下一個
     save.active = save.active.map((mi) => (run.completed.has(mi) ? save.next++ : mi));
@@ -1053,7 +1105,11 @@ export function createGame(root, { onClose } = {}) {
     checkBars();
   }
   function startRun() {
+    clearRun();
     reset(false);
+    begin();
+  }
+  function begin() {
     showPanel(null);
     hud.hidden = false;
     tipEl.hidden = true;
@@ -1068,12 +1124,20 @@ export function createGame(root, { onClose } = {}) {
     banner('3', 1);
     sfx.count(false);
   }
-  function pause() {
+  // why：為什麼暫停（玩家自己按的就不用說明）
+  const PAUSE_WHY = {
+    back: '剛剛好像滑到「上一頁」了，先幫你暫停',
+    fullscreen: '離開全螢幕了，先幫你暫停',
+    away: '剛剛離開了一下，先幫你暫停',
+  };
+  function pause(why) {
     if (state.mode !== 'play' && state.mode !== 'tutorial' && state.mode !== 'count') return;
     state.pausedFrom = state.mode === 'count' ? 'count' : state.mode;
     state.mode = 'pause';
     releaseAll();
-    $('.ls-pause-info').textContent = state.pausedFrom === 'tutorial' ? '教學中' : `目前 ${run.score} 根・第 ${run.wave} 波`;
+    saveRun();
+    const info = state.pausedFrom === 'tutorial' ? '教學中' : `目前 ${run.score} 根・第 ${run.wave} 波`;
+    $('.ls-pause-info').textContent = PAUSE_WHY[why] ? `${PAUSE_WHY[why]}・${info}` : info;
     showPanel('pause');
     $('.ls-resume').focus({ preventScroll: true });
   }
@@ -1084,6 +1148,8 @@ export function createGame(root, { onClose } = {}) {
     if (state.mode === 'count') startCount();
     last = performance.now();
     music.resume();
+    // 最後一條命沒了、還沒跳結算就暫停的話，回來直接結算
+    if (state.mode === 'play' && run.lives <= 0) gameOver();
   }
   function home() {
     state.mode = 'title';
@@ -1100,7 +1166,11 @@ export function createGame(root, { onClose } = {}) {
     const show = canFullscreen() && !isFullscreen();
     root.querySelectorAll('.ls-fs').forEach((b) => { b.hidden = !show; });
   };
-  onFullscreenChange(updateFsButtons);
+  // 手機上離開全螢幕（Android 的返回手勢第一下就是離開全螢幕）多半是不小心的，先暫停
+  onFullscreenChange(() => {
+    updateFsButtons();
+    if (!isFullscreen() && isTouch()) pause('fullscreen');
+  });
 
   const swipeEl = $('.ls-swipe');
   let swipeSkipped = false;
@@ -1128,6 +1198,7 @@ export function createGame(root, { onClose } = {}) {
     if (!b || !root.contains(b)) return;
     if (b.matches('[data-go], .ls-again, .ls-restart, .ls-resume, .ls-tip-go')) goBig();
     if (b.dataset.go === 'run') startRun();
+    else if (b.dataset.go === 'continue') continueRun();
     else if (b.dataset.go === 'tutorial') startTutorial();
     else if (b.matches('.ls-fs')) enterFullscreen(root);
     else if (b.matches('.ls-swipe-skip')) { swipeSkipped = true; hideSwipe(); }
@@ -1137,7 +1208,7 @@ export function createGame(root, { onClose } = {}) {
     else if (b.matches('.ls-resume')) resume();
     else if (b.matches('.ls-pause')) pause();
     else if (b.matches('.ls-tip-go, .ls-tip-skip')) finishTutorial();
-    else if (b.matches('.ls-close')) close();
+    else if (b.matches('.ls-close')) close(true);
     else if (b.matches('.ls-mute')) { save.muted = !save.muted; setMuted(save.muted); progress.write(); renderTitle(); }
   });
 
@@ -1211,7 +1282,23 @@ export function createGame(root, { onClose } = {}) {
     const k = KEYMAP[e.code];
     if (k && keys.delete(k)) syncKeys();
   };
-  const onHidden = () => { if (document.hidden) pause(); };
+  const onHidden = () => { if (document.hidden) pause('away'); };
+  // 有些瀏覽器關掉分頁、App 被系統收掉時只送 pagehide
+  const onPageHide = () => saveRun();
+
+  // ---------- 返回手勢：只會暫停，不會離開 ----------
+  // 手機橫拿時大拇指就在螢幕邊緣，很容易順手滑出「上一頁」（iPhone 從左邊、Android 兩邊都是）；
+  // 從 LINE、Messenger 點開的網頁沒有上一頁，一滑整個瀏覽器就關掉了
+  // 所以打開遊戲時先多墊一層瀏覽紀錄：滑到「上一頁」只會退掉這一層，遊戲收到後往回一步再墊回去——
+  //   遊戲中 → 暫停，暫停／結算 → 回標題，標題 → 離開小遊戲（這時才真的退出，不會把人困住）
+  const GUARD = { linggouSkate: true };
+  const guarded = () => history.state?.linggouSkate === true;
+  const onPopState = () => {
+    if (state.mode === 'play' || state.mode === 'tutorial' || state.mode === 'count') pause('back');
+    else if (state.mode === 'pause' || state.mode === 'over') home();
+    else { close(false); return; }
+    history.pushState(GUARD, '');
+  };
   const portrait = matchMedia('(orientation: portrait) and (max-width: 820px)');
   const onPortrait = (e) => { if (e.matches) pause(); };
 
@@ -1233,6 +1320,9 @@ export function createGame(root, { onClose } = {}) {
     addEventListener('touchend', onTouchEnd);
     addEventListener('touchcancel', onTouchEnd);
     addEventListener('blur', releaseAll);
+    addEventListener('pagehide', onPageHide);
+    addEventListener('popstate', onPopState);
+    if (!guarded()) history.pushState(GUARD, '');
     releaseAll();
     swipeSkipped = false;
     updateFsButtons();
@@ -1242,7 +1332,8 @@ export function createGame(root, { onClose } = {}) {
     raf = requestAnimationFrame(frame);
     $('.ls-title-actions .primary')?.focus({ preventScroll: true });
   }
-  function close() {
+  // byButton：按 ✕ 離開時，把打開時墊的那一層瀏覽紀錄退掉；滑「上一頁」離開的已經退過了
+  function close(byButton) {
     state.mode = 'title';
     cancelAnimationFrame(raf);
     removeEventListener('keydown', onKeyDown);
@@ -1256,13 +1347,16 @@ export function createGame(root, { onClose } = {}) {
     removeEventListener('touchend', onTouchEnd);
     removeEventListener('touchcancel', onTouchEnd);
     removeEventListener('blur', releaseAll);
+    removeEventListener('pagehide', onPageHide);
+    removeEventListener('popstate', onPopState);
+    if (byButton && guarded()) history.back();
     releaseAll();
     hideSwipe();
     onClose?.();
   }
 
   // 網址加上 #debug 可以從主控台快轉測試
-  if (location.hash === '#debug') window.__ls = { get run() { return run; }, get dog() { return dog; }, get items() { return items; }, plats, input, state, update, render, startRun, startTutorial, gameOver, T, wake: wakeAudio };
+  if (location.hash === '#debug') window.__ls = { get run() { return run; }, get dog() { return dog; }, get items() { return items; }, plats, input, state, update, render, startRun, startTutorial, gameOver, continueRun, T, wake: wakeAudio };
 
   return { open };
 }
